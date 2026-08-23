@@ -40,6 +40,7 @@
             display: flex;
             gap: 15px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         .main-tab-btn {
             background-color: #0e1721;
@@ -194,6 +195,23 @@
         .section-view.active {
             display: block;
         }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .dashboard-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .dashboard-card h3 {
+            margin-top: 0;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -206,6 +224,7 @@
 <div class="main-tabs">
     <button class="main-tab-btn active" onclick="switchMainTab('nhanluc')">Quản Lý Nhân Lực</button>
     <button class="main-tab-btn" onclick="switchMainTab('baocao')">Báo Cáo Cuối Ngày</button>
+    <button class="main-tab-btn" onclick="switchMainTab('dashboard')">Dashboard Tổng Hợp</button>
 </div>
 
 <!-- ================= TAB 1: QUẢN LÝ NHÂN LỰC ================= -->
@@ -247,7 +266,7 @@
     </div>
 
     <div class="summary-box">
-        <div>TỔNG SỐ LƯỢNG CÔNG NHÂN:</div>
+        <div>TỔNG SỐ LƯỢNG CÔNG NHÂN HÔM NAY:</div>
         <div id="totalNhanLuc" style="color: var(--accent-color);">0 công nhân</div>
     </div>
 
@@ -339,6 +358,13 @@
     </div>
 </div>
 
+<!-- ================= TAB 3: DASHBOARD TỔNG HỢP ================= -->
+<div id="viewDashboard" class="section-view">
+    <div class="dashboard-grid" id="dashboardContent">
+        <!-- Nội dung thống kê sẽ được render tự động qua JS -->
+    </div>
+</div>
+
 <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTlfliOhR58ljBZ6D6fmH-zHE2ch8Ic3y11XkOac9IvS-atef2Fdjf_nc6gWkICnSA/exec";
 
@@ -352,41 +378,41 @@
             {
                 hangMuc: "Nhôm kính", 
                 nhaThau: "VIỆT ANH", 
-                congTac: ["Vận chuyển vật tư", "Lắp đặt khung phụ", "Bơm vữa", "L", "LẮP RON", "B KEO SILICONE", "VỆ SINH"]
+                congTac: ["VẬN CHUYỂN VẬT TƯ", "LẬP KHUNG PHỤ", "BƠM VỮA", "LẮP KHUNG CHÍNH", "LẮP RON", "BÁN KEO SILICONE", "VỆ SINH"]
             },
             {
                 hangMuc: "Vách kính phòng tắm", 
                 nhaThau: "NHẬT KHOA", 
-                congTac: ["vận chuyển vật tư", "Lắp đặt kính", "Lắp đặt phụ kiện", "Bán Silicone","Vệ sinh"]
+                congTac: ["vận chuyển vật tư", "Lắp đặt kính", "Lắp đặt phụ kiện", "Bán Silicone"]
             }
         ],
         "Tháp B1": [
             {
                 hangMuc: "Lắp đặt lan can", 
-                nhaThau: "BẢN VIỆT", 
-                congTac: ["Vận chuyển vật tư", "Khoan cấy ty lan can", "Lắp trụ lan can", "Fill lỗ lan can", "Lắp kính lan can", "Lắp tay trụ lan can", "Vệ sinh lan can"]
+                nhaThau: "BÁN VIỆT", 
+                congTac: ["VẬN CHUYỂN VẬT TƯ", "Khoan cấy ty lan can", "Lắp trụ lan can", "Fill lỗ lan can", "Lắp kính lan can", "Lắp tay trụ lan can", "Vệ sinh lan can"]
             },
             {
                 hangMuc: "Nhôm kính", 
                 nhaThau: "THÁI LONG", 
-                congTac: ["Vận chuyển vật tư", "Lắp đặt khung phụ", "Bơm vữa", "Lắp khung chính", "gắn Ron", "Bắn Silicone", "Vệ sinh"]
+                congTac: ["VẬN CHUYỂN VẬT TƯ", "LẬP KHUNG PHỤ", "BƠM VỮA", "LẮP KHUNG CHÍNH", "LẮP RON", "BÁN KEO SILICONE", "VỆ SINH"]
             },
             {
                 hangMuc: "Vách kính phòng tắm", 
-                nhaThau: "CAO TRUNG NGHĨA", 
-                congTac: ["vận chuyển vật tư", "Lắp đặt kính", "Lắp đặt phụ kiện", "Bán Silicone","Vệ sinh"]
+                nhaThau: "THÁI LONG", 
+                congTac: ["vận chuyển vật tư", "Lắp đặt kính", "Lắp đặt phụ kiện", "Bán Silicone"]
             }
         ],
         "Tháp B2": [
             {
                 hangMuc: "Lắp đặt lan can", 
                 nhaThau: "BÁN VIỆT", 
-                congTac: ["Vận chuyển vật tư", "Khoan cấy ty lan can", "Lắp trụ lan can", "Fill lỗ lan can", "Lắp kính lan can", "Lắp tay trụ lan can", "Vệ sinh lan can"]
+                congTac: ["VẬN CHUYỂN VẬT TƯ", "Khoan cấy ty lan can", "Lắp trụ lan can", "Fill lỗ lan can", "Lắp kính lan can", "Lắp tay trụ lan can", "Vệ sinh lan can"]
             },
             {
                 hangMuc: "Nhôm kính", 
                 nhaThau: "HƯNG GIA TUỆ", 
-                congTac: ["Vận chuyển vật tư", "Lắp đặt khung phụ", "Bơm vữa", "Lắp khung chính", "gắn Ron", "Bắn Silicone", "Vệ sinh"]
+                congTac: ["VẬN CHUYỂN VẬT TƯ", "LẬP KHUNG PHỤ", "BƠM VỮA", "LẮP KHUNG CHÍNH", "LẮP RON", "BÁN KEO SILICONE", "VỆ SINH"]
             },
             {
                 hangMuc: "Vách kính phòng tắm", 
@@ -404,6 +430,7 @@
 
     let currentTowerNL = "Tháp A";
     let currentTowerBC = "Tháp A";
+    let allNhanLucData = [];
 
     function switchMainTab(tabName) {
         document.querySelectorAll('.main-tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -412,9 +439,13 @@
         if(tabName === 'nhanluc') {
             document.querySelectorAll('.main-tab-btn')[0].classList.add('active');
             document.getElementById('viewNhanLuc').classList.add('active');
-        } else {
+        } else if(tabName === 'baocao') {
             document.querySelectorAll('.main-tab-btn')[1].classList.add('active');
             document.getElementById('viewBaoCao').classList.add('active');
+        } else if(tabName === 'dashboard') {
+            document.querySelectorAll('.main-tab-btn')[2].classList.add('active');
+            document.getElementById('viewDashboard').classList.add('active');
+            renderDashboard();
         }
     }
 
@@ -423,6 +454,12 @@
         const bcTang = document.getElementById('bcSelectTang');
         nlTang.innerHTML = "";
         bcTang.innerHTML = "";
+        
+        // Thêm Tầng 1 trước
+        nlTang.innerHTML += `<option value="Tầng 1">Tầng 1</option>`;
+        bcTang.innerHTML += `<option value="Tầng 1">Tầng 1</option>`;
+
+        // Tiếp tục từ Tầng 8 đến Tầng 38
         for (let i = 8; i <= 38; i++) {
             nlTang.innerHTML += `<option value="Tầng ${i}">Tầng ${i}</option>`;
             bcTang.innerHTML += `<option value="Tầng ${i}">Tầng ${i}</option>`;
@@ -436,10 +473,16 @@
         fetch(SCRIPT_URL)
         .then(response => response.json())
         .then(data => {
+            const todayStr = new Date().toLocaleDateString('vi-VN');
+            
             const nlBody = document.getElementById('nlTableBody');
             nlBody.innerHTML = "";
-            if(data.nhanLuc) {
-                data.nhanLuc.forEach(row => {
+            allNhanLucData = []; // Reset mảng tạm
+            
+            const fetchedList = data.nhanLuc || [];
+            fetchedList.forEach(row => {
+                if(row.ngay === todayStr) {
+                    allNhanLucData.push(row); // Chỉ push dữ liệu của ngày hôm nay vào mảng quản lý
                     let tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${row.ngay}</td>
@@ -451,10 +494,10 @@
                         <td>${row.ghiChu}</td>
                         <td><button class="delete-btn" onclick="deleteRow(this, 'nhanluc')">Xóa</button></td>
                     `;
-                    nlBody.prepend(tr);
-                });
-                updateTotal();
-            }
+                    nlBody.appendChild(tr);
+                }
+            });
+            updateTotal();
 
             const bcBody = document.getElementById('bcTableBody');
             bcBody.innerHTML = "";
@@ -476,6 +519,49 @@
             }
         })
         .catch(err => console.log("Lỗi tải dữ liệu chung:", err));
+    }
+
+    function renderDashboard() {
+        const dashboardContainer = document.getElementById('dashboardContent');
+        dashboardContainer.innerHTML = "";
+
+        let stats = {};
+        allNhanLucData.forEach(row => {
+            let towerName = "Khác";
+            if(row.tang.includes("Tháp A")) towerName = "Tháp A";
+            else if(row.tang.includes("Tháp B1")) towerName = "Tháp B1";
+            else if(row.tang.includes("Tháp B2")) towerName = "Tháp B2";
+
+            let contractor = row.nhaThau || "Chưa rõ";
+            let count = parseInt(row.soLuong) || 0;
+
+            if(!stats[towerName]) stats[towerName] = {};
+            if(!stats[towerName][contractor]) stats[towerName][contractor] = 0;
+            stats[towerName][contractor] += count;
+        });
+
+        for(let tower in database) {
+            let card = document.createElement('div');
+            card.className = 'dashboard-card';
+            
+            let html = `<h3>${tower}</h3>`;
+            html += `<table><thead><tr><th>Nhà thầu</th><th>Tổng nhân lực</th></tr></thead><tbody>`;
+            
+            let towerContractors = stats[tower] || {};
+            let hasData = false;
+            for(let contractor in towerContractors) {
+                hasData = true;
+                html += `<tr><td>${contractor}</td><td style="color: var(--accent-color); font-weight: bold;">${towerContractors[contractor]} công nhân</td></tr>`;
+            }
+
+            if(!hasData) {
+                html += `<tr><td colspan="2" style="color: var(--text-muted); text-align: center;">Chưa có dữ liệu nhân lực</td></tr>`;
+            }
+
+            html += `</tbody></table>`;
+            card.innerHTML = html;
+            dashboardContainer.appendChild(card);
+        }
     }
 
     function selectTower(towerName, mode) {
@@ -575,7 +661,18 @@
             <td>${ghichu}</td>
             <td><button class="delete-btn" onclick="deleteRow(this, 'nhanluc')">Xóa</button></td>
         `;
-        tbody.prepend(tr);
+        tbody.appendChild(tr);
+        
+        allNhanLucData.push({
+            ngay: currentDate,
+            tang: `${tang} - ${currentTowerNL}`,
+            hangMuc: hangmuc,
+            nhaThau: nhathau,
+            congTac: congtac,
+            soLuong: nhanluc,
+            ghiChu: ghichu
+        });
+
         document.getElementById('inputNhanLuc').value = '';
         document.getElementById('nlInputGhiChu').value = '';
         updateTotal();
@@ -608,8 +705,14 @@
     }
 
     function deleteRow(btn, mode) {
-        btn.closest('tr').remove();
-        if(mode === 'nhanluc') updateTotal();
+        const row = btn.closest('tr');
+        const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+        row.remove();
+        
+        if(mode === 'nhanluc') {
+            allNhanLucData.splice(rowIndex, 1); // Cập nhật lại mảng dữ liệu nhân lực
+            updateTotal();
+        }
     }
 
     function updateTotal() {
