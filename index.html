@@ -1653,7 +1653,7 @@ function updateDropdowns(mode) {
             <tr data-index="${i}">
                 <td>${esc(row.thapTang)}</td><td>${esc(row.hangMuc)}</td><td>${esc(row.nhaThau)}</td><td>${esc(row.congTac)}</td>
                 <td>${esc(row.nhanLucBaoCao)}</td>
-                <td><select class="cht-nl-eval"><option value="">-- Chọn --</option><option ${row.nhanLucDanhGia==='Đủ'?'selected':''}>Đủ</option><option ${row.nhanLucDanhGia==='Thiếu'?'selected':''}>Thiếu</option><option ${row.nhanLucDanhGia==='Vượt nhu cầu'?'selected':''}>Vượt nhu cầu</option></select></td>
+                <td><select class="cht-nl-eval"><option value="">-- Chọn --</option><option ${row.nhanLucDanhGia==='Đủ'?'selected':''}>Đủ</option><option ${row.nhanLucDanhGia==='Thiếu'?'selected':''}>Thiếu</option></select></td>
                 <td><select class="cht-td-eval"><option value="">-- Chọn --</option><option ${row.tienDoDanhGia==='Đạt'?'selected':''}>Đạt</option><option ${row.tienDoDanhGia==='Cần đẩy nhanh'?'selected':''}>Cần đẩy nhanh</option><option ${row.tienDoDanhGia==='Chậm'?'selected':''}>Chậm</option></select></td>
                 <td><input class="cht-note" type="text" value="${escAttr(row.ghiChuCHT || '')}" placeholder="Ghi chú..."></td>
             </tr>`).join('');
