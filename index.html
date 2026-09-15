@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Quản lý Nhân lực & Thi công Công trình</title>
+    <!-- v16: bootstrap nhẹ, tải theo tab, không reload Sheets sau mỗi lần lưu -->
     
 
 
 <script>
         // CƠ CHẾ TỰ ĐỘNG CẬP NHẬT KHI CÓ CODE MỚI
-        const APP_VERSION = "2026.09.01-v15";  
+        const APP_VERSION = "2026.09.15-v17";  
         if (localStorage.getItem('app_version') !== APP_VERSION) {
             localStorage.setItem('app_version', APP_VERSION);
             window.location.reload(true);
@@ -862,7 +863,7 @@
         return formatDate(dateStr) === getTodayString();
     }
 
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQaSS2bscvyT6gxs1lYDhGQSmYI4hIHBdDqtUlREaokKBo8Jo0fCsYVhqAJcGJexeRtg/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTlfliOhR58ljBZ6D6fmH-zHE2ch8Ic3y11XkOac9IvS-atef2Fdjf_nc6gWkICnSA/exec";
 
     const database = {
         "Khối Đế": [
@@ -981,6 +982,8 @@
     const sendingModes = new Set();
     let reportLoaded = false;
     let reportLoadingPromise = null;
+    let handoverLoaded = false;
+    let handoverLoadingPromise = null;
 
     function switchMainTab(tabName) {
         const tabs = document.querySelectorAll('.main-tab-btn');
@@ -1001,7 +1004,10 @@
 
         if (tabName === 'baocao') { loadBaoCaoData().catch(err => console.error(err)); syncNhanLucToReport(); }
         else if (tabName === 'dashboard') updateDashboardStats();
-        else if (tabName === 'handover') renderHandoverTable();
+        else if (tabName === 'handover') {
+            if (!handoverLoaded) loadHandoverData().catch(err => console.error(err));
+            else renderHandoverTable();
+        }
     }
 
     function parseHandoverDate(dateString) {
@@ -1108,7 +1114,7 @@
                 ngayDuKien: record.end, trangThai: status, ghiChu,
                 ngayCapNhat: getTodayString(), id
             }]
-        }).then(() => loadDataFromGoogleSheets(true)).catch(error => console.error('Lỗi đồng bộ tiến độ giao nhà:', error));
+        }).then(() => loadHandoverData()).catch(error => console.error('Lỗi đồng bộ tiến độ giao nhà:', error));
     }
 
     function filterHandoverByTower(tower) {
@@ -1187,7 +1193,6 @@
         setupThemeToggle();
         updateDropdowns('nhanluc');
         trackReportEdits();
-        renderHandoverTable();
         loadDataFromGoogleSheets();
     }
 
@@ -1313,9 +1318,36 @@
 
     let bootstrapPromise = null;
 
+    async function loadHandoverData(force = false) {
+        if (handoverLoadingPromise && !force) return handoverLoadingPromise;
+        if (handoverLoaded && !force) { renderHandoverTable(); return; }
+
+        handoverLoadingPromise = fetch(`${SCRIPT_URL}?action=handover&_=${Date.now()}`, {
+            method: 'GET', cache: 'no-store', redirect: 'follow'
+        })
+        .then(async response => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (data.status && data.status !== 'success') throw new Error(data.message || 'Backend lỗi');
+            handoverSheetRecords = {};
+            (data.tienDoGiaoNha || []).forEach(row => {
+                handoverSheetRecords[`${row.thap}-${row.tang}`] = row;
+            });
+            handoverLoaded = true;
+            renderHandoverTable();
+            return data;
+        })
+        .finally(() => { handoverLoadingPromise = null; });
+
+        return handoverLoadingPromise;
+    }
+
     async function loadDataFromGoogleSheets(force = false) {
         if (bootstrapPromise && !force) return bootstrapPromise;
-        bootstrapPromise = fetch(`${SCRIPT_URL}?todayOnly=true&_=${Date.now()}`, {
+
+        // Bootstrap CHỈ tải Nhân lực hôm nay. Tiến độ giao nhà được lazy-load
+        // khi người dùng mở tab đó, tránh chờ dữ liệu không cần thiết lúc mở trang.
+        bootstrapPromise = fetch(`${SCRIPT_URL}?action=nhanluc&_=${Date.now()}`, {
             method: 'GET', cache: 'no-store', redirect: 'follow'
         })
         .then(async response => {
@@ -1325,10 +1357,6 @@
             return data;
         })
         .then(data => {
-            handoverSheetRecords = {};
-            (data.tienDoGiaoNha || []).forEach(row => handoverSheetRecords[`${row.thap}-${row.tang}`] = row);
-            renderHandoverTable();
-
             const nlRows = data.nhanLuc || [];
             const nlBody = document.getElementById('nlTableBody');
             nlBody.innerHTML = nlRows.map(row => `
@@ -1342,6 +1370,7 @@
         })
         .catch(err => { console.error('Lỗi tải dữ liệu:', err); throw err; })
         .finally(() => { bootstrapPromise = null; });
+
         return bootstrapPromise;
     }
 
@@ -1603,7 +1632,16 @@ function updateDropdowns(mode) {
 
             await postJSON({type: mode, rows: payloadData});
             alert('Đã đồng bộ thành công!');
-            if (mode === 'baocao') { reportLoaded = false; await loadBaoCaoData(true); } else { await loadDataFromGoogleSheets(true); }
+            if (mode === 'baocao') {
+                rows.forEach(row => {
+                    row.dataset.saved = 'true';
+                    row.dataset.userModified = 'false';
+                    row.dataset.original = JSON.stringify(getReportRowValues(row));
+                });
+                reportLoaded = true;
+            } else {
+                rows.forEach(row => row.dataset.saved = 'true');
+            }
         } catch (error) {
             console.error('Lỗi:', error);
             alert(error.message || 'Có lỗi xảy ra khi gửi dữ liệu!');
@@ -1678,8 +1716,15 @@ function updateDropdowns(mode) {
             });
             if (!rows.length) throw new Error('Không có công việc để đánh giá.');
             await postJSON({type:'danhgia_cht', userId:chtVerifiedUserId, rows});
+            rows.forEach((saved, index) => {
+                if (chtEvaluationRows[index]) {
+                    chtEvaluationRows[index].nhanLucDanhGia = saved.nhanLucDanhGia;
+                    chtEvaluationRows[index].tienDoDanhGia = saved.tienDoDanhGia;
+                    chtEvaluationRows[index].ghiChuCHT = saved.ghiChuCHT;
+                }
+            });
             alert('Đã lưu đánh giá CHT thành công.');
-            await verifyAndLoadCHTData();
+            renderCHTEvaluationTable();
         } catch (error) {
             console.error(error);
             alert(error.message || 'Lưu đánh giá CHT thất bại.');
