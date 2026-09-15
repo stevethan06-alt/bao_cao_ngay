@@ -5,8 +5,7 @@
     <title>Quản lý Nhân lực & Thi công Công trình</title>
     <script>
         // CƠ CHẾ TỰ ĐỘNG CẬP NHẬT KHI CÓ CODE MỚI
-        // Mỗi lần bạn sửa code xong, hãy tăng số phiên bản này lên (VD: v2, v3, v4...)
-        const APP_VERSION = "2026.08.23-v1"; 
+        const APP_VERSION = "2026.09.15-v21-cht-nhieu-nick";  
         if (localStorage.getItem('app_version') !== APP_VERSION) {
             localStorage.setItem('app_version', APP_VERSION);
             window.location.reload(true);
@@ -15,34 +14,87 @@
     <style>
         :root {
             --bg-color: #0b131a;
+            --bg-soft: #101d29;
             --card-bg: #111d28;
+            --card-soft: #0d1720;
             --border-color: #1f2f3d;
             --accent-color: #00d2ff;
-            --text-main: #e2e8f0;
-            --text-muted: #94a3b8;
+            --accent-strong: #0ea5e9;
+            --text-main: #edf6ff;
+            --text-muted: #b7c9d9;
+            --text-strong: #ffffff;
             --hover-color: #162838;
+            --field-bg: #0b131a;
+            --field-text: #edf6ff;
+            --success-bg: #10b981;
+            --danger-bg: #ef4444;
+            --shadow-soft: 0 10px 22px rgba(0, 0, 0, 0.18);
+        }
+        body.light-theme {
+            --bg-color: #edf4fb;
+            --bg-soft: #f7fbff;
+            --card-bg: #ffffff;
+            --card-soft: #f4f8ff;
+            --border-color: #d4e0ee;
+            --accent-color: #0f7ae5;
+            --accent-strong: #0b5ed7;
+            --text-main: #101828;
+            --text-muted: #475467;
+            --text-strong: #0f172a;
+            --hover-color: rgba(15, 122, 229, 0.08);
+            --field-bg: #ffffff;
+            --field-text: #101828;
+            --success-bg: #10b981;
+            --danger-bg: #ef4444;
+            --shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.08);
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
+            background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg-color) 100%);
             color: var(--text-main);
             margin: 0;
             padding: 20px;
+            transition: background 0.25s ease, color 0.25s ease;
         }
         .header {
             margin-bottom: 25px;
             border-bottom: 1px solid var(--border-color);
             padding-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
         .header h1 {
             font-size: 24px;
-            color: white;
+            color: var(--text-strong);
             margin: 0 0 5px 0;
         }
         .header p {
             color: var(--text-muted);
             margin: 0;
             font-size: 14px;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .theme-toggle {
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-main);
+            border-radius: 999px;
+            padding: 9px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        body.light-theme .theme-toggle {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border-color: var(--border-color);
         }
         
         .main-tabs {
@@ -52,20 +104,21 @@
             flex-wrap: wrap;
         }
         .main-tab-btn {
-            background-color: #0e1721;
-            border: 2px solid var(--border-color);
-            color: var(--text-muted);
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
             padding: 12px 25px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             font-size: 16px;
             transition: all 0.3s;
+            box-shadow: var(--shadow-soft);
         }
         .main-tab-btn.active {
-            background-color: var(--accent-color);
-            color: #000;
-            border-color: var(--accent-color);
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
         }
 
         .tabs {
@@ -77,7 +130,7 @@
         .tab-btn {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            color: var(--text-muted);
+            color: var(--text-main);
             padding: 10px 20px;
             border-radius: 6px;
             cursor: pointer;
@@ -85,9 +138,9 @@
             transition: all 0.3s;
         }
         .tab-btn.active, .tab-btn:hover {
-            background-color: var(--accent-color);
-            color: #000;
-            border-color: var(--accent-color);
+            background-color: var(--text-main);
+            color: var(--bg-color);
+            border-color: var(--text-main);
         }
 
         .filter-panel {
@@ -98,7 +151,8 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-soft);
         }
         .filter-group label {
             display: block;
@@ -109,12 +163,17 @@
         }
         .filter-group select, .filter-group input {
             width: 100%;
-            background: #0b131a;
+            background: var(--field-bg);
             border: 1px solid var(--border-color);
-            color: white;
+            color: var(--field-text);
             padding: 10px;
             border-radius: 6px;
             box-sizing: border-box;
+            color-scheme: dark;
+        }
+        body.light-theme .filter-group select,
+        body.light-theme .filter-group input {
+            color-scheme: light;
         }
         .submit-container {
             grid-column: 1 / -1;
@@ -158,6 +217,20 @@
             cursor: pointer;
             font-size: 12px;
         }
+        .clear-all-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .clear-all-btn:hover {
+            background-color: #dc2626;
+        }
 
         .summary-box {
             background-color: var(--card-bg);
@@ -170,6 +243,12 @@
             align-items: center;
             font-size: 16px;
             font-weight: bold;
+            color: var(--text-main);
+        }
+        .summary-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
 
         /* Dashboard Styles */
@@ -223,6 +302,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             overflow-x: auto;
+            box-shadow: var(--shadow-soft);
         }
         table {
             width: 100%;
@@ -235,11 +315,14 @@
             border-bottom: 1px solid var(--border-color);
         }
         th {
-            background-color: #0e1721;
-            color: var(--text-muted);
+            background-color: var(--card-soft);
+            color: var(--text-main);
             font-weight: 600;
             text-transform: uppercase;
             font-size: 12px;
+        }
+        td {
+            color: var(--text-main);
         }
         tr:hover {
             background-color: var(--hover-color);
@@ -250,21 +333,268 @@
         .section-view.active {
             display: block;
         }
+        .report-contractor-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .form-phat-sinh-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            align-items: end;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 18px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .form-phat-sinh-container .form-group {
+            min-width: 0;
+        }
+        .form-phat-sinh-container label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .form-phat-sinh-container .form-control {
+            width: 100%;
+            box-sizing: border-box;
+            background: #0b131a;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 11px;
+            border-radius: 6px;
+            font: inherit;
+            min-width: 0;
+        }
+        .form-phat-sinh-container .btn-ok {
+            background-color: #3b82f6;
+            color: white;
+            border: 0;
+            height: 40px;
+            min-width: 82px;
+            padding: 0 22px;
+            margin: 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .btn-them-phatsinh {
+            background-color: #3b82f6;
+            color: white;
+            border: 0;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .btn-them-phatsinh:hover,
+        .form-phat-sinh-container .btn-ok:hover {
+            background-color: #2563eb;
+        }
+        #reportTableBody input,
+        #reportTableBody select,
+        #phatSinhTableBody input {
+            width: 100%;
+            box-sizing: border-box;
+            background: #0b131a;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 6px;
+            border-radius: 4px;
+        }
+        #reportTableBody td:nth-child(5),
+        #reportTableBody td:nth-child(6) {
+            width: 8%;
+        }
+        #reportTableBody .report-apartment,
+        #reportTableBody .report-progress {
+            width: 50%;
+            min-width: 90px;
+        }
+        #reportTableBody td:nth-child(8) {
+            width: 18%;
+        }
+        #reportTableBody .report-note {
+            width: 100%;
+            min-width: 260px;
+        }
+        .status-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            color: #f87171;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .status-toggle input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .status-toggle .toggle-track {
+            position: relative;
+            display: inline-block;
+            width: 42px;
+            height: 22px;
+            background: #7f1d1d;
+            border: 1px solid #ef4444;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .status-toggle .toggle-track::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .status-toggle input:checked + .toggle-track {
+            background: #047857;
+            border-color: #10b981;
+        }
+        .status-toggle input:checked + .toggle-track::after {
+            transform: translateX(20px);
+        }
+        .status-toggle input:checked ~ .status-label {
+            color: #34d399;
+        }
+        .handover-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .handover-summary-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px 18px;
+        }
+        .handover-summary-card strong {
+            display: block;
+            color: white;
+            font-size: 24px;
+            margin-top: 5px;
+        }
+        .handover-summary-card span {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .handover-status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .handover-status.completed { background: #064e3b; color: #6ee7b7; }
+        .handover-status.active { background: #164e63; color: #67e8f9; }
+        .handover-status.delayed { background: #7f1d1d; color: #fca5a5; }
+        .handover-table select {
+            background: #0b131a;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 7px;
+            border-radius: 4px;
+        }
+        .handover-user-id-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 16px 0;
+            padding: 12px 14px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+        .handover-user-id-row label {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .handover-user-id-row input {
+            width: 260px;
+            max-width: 100%;
+            box-sizing: border-box;
+            background: #0b131a;
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 11px;
+            border-radius: 6px;
+            font: inherit;
+        }
+
+        #chtEvaluationTableBody input,
+        #chtEvaluationTableBody select {
+            width: 100%;
+            min-width: 120px;
+            box-sizing: border-box;
+            background: var(--field-bg);
+            border: 1px solid var(--border-color);
+            color: var(--field-text);
+            padding: 8px;
+            border-radius: 5px;
+            font: inherit;
+        }
+        #chtEvaluationTableBody .cht-note {
+            min-width: 220px;
+        }
+        .cht-verified {
+            color: #34d399;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+        @media (max-width: 800px) {
+            .handover-summary { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 800px) {
+            .form-phat-sinh-container {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+            .form-phat-sinh-container .btn-ok {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>HỆ THỐNG QUẢN LÝ NHÂN LỰC & THI CÔNG</h1>
-    <p>Chọn tháp, tầng, hạng mục, nhà thầu và cập nhật dữ liệu hàng ngày</p>
+    <div>
+<h1>HỆ THỐNG QUẢN LÝ NHÂN LỰC & THI CÔNG</h1>
+<p>Chọn tháp, tầng, hạng mục, nhà thầu và cập nhật dữ liệu hàng ngày</p>
+</div>
+<div class="header-actions">
+    <button id="themeToggle" class="theme-toggle" type="button">🌙 Chế độ tối</button>
+</div>
 </div>
 
 <div class="main-tabs">
     <button class="main-tab-btn active" onclick="switchMainTab('nhanluc')">Quản Lý Nhân Lực</button>
     <button class="main-tab-btn" onclick="switchMainTab('baocao')">Báo Cáo Cuối Ngày</button>
     <button class="main-tab-btn" onclick="switchMainTab('dashboard')">Dashboard Tổng Quan</button>
+    <button class="main-tab-btn" onclick="switchMainTab('handover')">Tiến Độ Giao Nhà</button>
+    <!-- THÊM TAB MỚI CHO CHỈ HUY TRƯỞNG -->
+    <button class="main-tab-btn" onclick="switchMainTab('danhgia_cht')">Đánh Giá Của CHT</button>
 </div>
-
 <!-- ================= TAB 1: QUẢN LÝ NHÂN LỰC ================= -->
 <div id="viewNhanLuc" class="section-view active">
     <div class="tabs">
@@ -304,8 +634,10 @@
     </div>
 
     <div class="summary-box">
-        <div>TỔNG SỐ LƯỢNG CÔNG NHÂN:</div>
-        <div id="totalNhanLuc" style="color: var(--accent-color);">0 công nhân</div>
+        <div class="summary-left">
+            <div>TỔNG SỐ LƯỢNG CÔNG NHÂN: <span id="totalNhanLuc" style="color: var(--accent-color); margin-left: 10px;">0 công nhân</span></div>
+        </div>
+        <button class="clear-all-btn" onclick="clearAllData('nhanluc')">Xóa hết dữ liệu</button>
     </div>
 
     <div class="table-container">
@@ -333,90 +665,238 @@
 
 <!-- ================= TAB 2: BÁO CÁO CUỐI NGÀY ================= -->
 <div id="viewBaoCao" class="section-view">
-    <div class="tabs">
-        <button class="tab-btn active" onclick="selectTower('Tháp A', 'baocao')">Tháp A</button>
-        <button class="tab-btn" onclick="selectTower('Tháp B1', 'baocao')">Tháp B1</button>
-        <button class="tab-btn" onclick="selectTower('Tháp B2', 'baocao')">Tháp B2</button>
+    <div class="report-contractor-tabs" id="reportContractorTabs">
+        <button class="tab-btn active" onclick="filterReportByContractor('Tất cả')">Tất cả</button>
+        <button class="tab-btn" onclick="filterReportByContractor('BẢN VIỆT')">BẢN VIỆT</button>
+        <button class="tab-btn" onclick="filterReportByContractor('VIỆT ANH')">VIỆT ANH</button>
+        <button class="tab-btn" onclick="filterReportByContractor('NHẬT KHOA')">NHẬT KHOA</button>
+        <button class="tab-btn" onclick="filterReportByContractor('THÁI LONG')">THÁI LONG</button>
+        <button class="tab-btn" onclick="filterReportByContractor('CAO TRUNG NGHĨA')">CAO TRUNG NGHĨA</button>
+        <button class="tab-btn" onclick="filterReportByContractor('HƯNG GIA TUỆ')">HƯNG GIA TUỆ</button>
     </div>
 
-    <div class="filter-panel">
-        <div class="filter-group">
-            <label>CHỌN TẦNG</label>
-            <select id="bcSelectTang"></select>
-        </div>
-        <div class="filter-group">
-            <label>HẠNG MỤC</label>
-            <select id="bcSelectHangMuc" onchange="updateSubDropdowns('baocao')"></select>
-        </div>
-        <div class="filter-group">
-            <label>NHÀ THẦU</label>
-            <select id="bcSelectNhaThau"></select>
-        </div>
-        <div class="filter-group">
-            <label>CHỌN CĂN</label>
-            <select id="bcSelectCan"></select>
-        </div>
-        <div class="filter-group">
-            <label>TRẠNG THÁI</label>
-            <select id="bcSelectTrangThai">
-                <option value="Đã xong">Đã xong</option>
-                <option value="Chưa xong">Chưa xong</option>
-                <option value="1 phần">1 phần</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>GHI CHÚ</label>
-            <input type="text" id="bcInputGhiChu" placeholder="Nhập ghi chú...">
-        </div>
-        <div class="submit-container">
-            <button class="ok-btn" onclick="addBaoCaoRow()">OK</button>
-        </div>
-    </div>
+    <div class="sub-title" style="margin-top: 20px;">1. Tổng hợp công việc trong ngày</div>
 
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th>Ngày</th>
-                    <th>Tháp & Tầng</th>
+                    <th>Tháp / Tầng</th>
                     <th>Hạng mục</th>
                     <th>Nhà thầu</th>
+                    <th>Công tác</th>
                     <th>Căn</th>
+                    <th>% Hoàn thành</th>
                     <th>Trạng thái</th>
                     <th>Ghi chú</th>
                     <th>Thao tác</th>
                 </tr>
             </thead>
-            <tbody id="bcTableBody"></tbody>
+            <tbody id="reportTableBody"></tbody>
         </table>
     </div>
 
+    <div class="sub-title" style="margin-top: 20px;">2. Công việc phát sinh nếu có</div>
+    <div class="form-phat-sinh-container">
+        <div class="form-group">
+            <label>THÁP</label>
+            <select id="psThap" class="form-control">
+                <option value="Tháp A">Tháp A</option>
+                <option value="Tháp B1">Tháp B1</option>
+                <option value="Tháp B2">Tháp B2</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>TẦNG</label>
+            <select id="psTang" class="form-control">
+                <option value="Tầng 1">Tầng 1</option>
+                <option value="Tầng 8">Tầng 8</option>
+                <option value="Tầng 9">Tầng 9</option>
+                <option value="Tầng 10">Tầng 10</option>
+                <option value="Tầng 11">Tầng 11</option>
+                <option value="Tầng 12">Tầng 12</option>
+                <option value="Tầng 13">Tầng 13</option>
+                <option value="Tầng 14">Tầng 14</option>
+                <option value="Tầng 15">Tầng 15</option>
+                <option value="Tầng 16">Tầng 16</option>
+                <option value="Tầng 17">Tầng 17</option>
+                <option value="Tầng 18">Tầng 18</option>
+                <option value="Tầng 19">Tầng 19</option>
+                <option value="Tầng 20">Tầng 20</option>
+                <option value="Tầng 21">Tầng 21</option>
+                <option value="Tầng 22">Tầng 22</option>
+                <option value="Tầng 23">Tầng 23</option>
+                <option value="Tầng 24">Tầng 24</option>
+                <option value="Tầng 25">Tầng 25</option>
+                <option value="Tầng 26">Tầng 26</option>
+                <option value="Tầng 27">Tầng 27</option>
+                <option value="Tầng 28">Tầng 28</option>
+                <option value="Tầng 29">Tầng 29</option>
+                <option value="Tầng 30">Tầng 30</option>
+                <option value="Tầng 31">Tầng 31</option>
+                <option value="Tầng 32">Tầng 32</option>
+                <option value="Tầng 33">Tầng 33</option>
+                <option value="Tầng 34">Tầng 34</option>
+                <option value="Tầng 35">Tầng 35</option>
+                <option value="Tầng 36">Tầng 36</option>
+                <option value="Tầng 37">Tầng 37</option>
+                <option value="Tầng 38">Tầng 38</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>HẠNG MỤC</label>
+            <select id="psHangMuc" class="form-control">
+                <option value="Lắp đặt lan can">Lắp đặt lan can</option>
+                <option value="Nhôm kính">Nhôm kính</option>
+                <option value="Vách kính phòng tắm">Vách kính phòng tắm</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>NHÀ THẦU</label>
+            <select id="psNhaThau" class="form-control">
+                <option value="BẢN VIỆT">BẢN VIỆT</option>
+                <option value="VIỆT ANH">VIỆT ANH</option>
+                <option value="NHẬT KHOA">NHẬT KHOA</option>
+                <option value="THÁI LONG">THÁI LONG</option>
+                <option value="CAO TRUNG NGHĨA">CAO TRUNG NGHĨA</option>
+                <option value="HƯNG GIA TUỆ">HƯNG GIA TUỆ</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>CÔNG TÁC</label>
+            <input id="psCongTac" class="form-control" type="text" placeholder="Nhập nội dung công tác phát sinh...">
+        </div>
+        <div class="form-group">
+            <label>NHÂN LỰC</label>
+            <input id="psNhanLuc" class="form-control" type="text" placeholder="VD: 5 công nhân">
+        </div>
+        <button class="btn-ok" onclick="addPhatSinhTask()">OK</button>
+    </div>
+    <div class="submit-container">
+        <button class="btn-them-phatsinh" onclick="focusPhatSinhForm()">Thêm Phát Sinh</button>
+    </div>
+
     <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
-        <button class="send-btn" onclick="sendData('baocao')">GỬI BÁO CÁO</button>
+        <button class="send-btn" onclick="sendData('baocao')">GỬI DỮ LIỆU</button>
     </div>
 </div>
 
 <!-- ================= TAB 3: DASHBOARD TỔNG QUAN ================= -->
 <div id="viewDashboard" class="section-view">
     <div id="dashboardContainer" class="dashboard-container">
-        <!-- Dữ liệu chi tiết theo tháp, nhà thầu, hạng mục (chỉ hiện công nhân) -->
+        <!-- Dữ liệu chi tiết theo tháp, nhà thầu, hạng mục -->
+    </div>
+</div>
+
+<!-- ================= TAB 4: TIẾN ĐỘ GIAO NHÀ ================= -->
+<div id="viewHandover" class="section-view">
+    <div class="tabs" id="handoverTowerTabs">
+        <button class="tab-btn active" onclick="filterHandoverByTower('Tất cả')">Tất cả</button>
+        <button class="tab-btn" onclick="filterHandoverByTower('Tháp A')">Tháp A</button>
+        <button class="tab-btn" onclick="filterHandoverByTower('Tháp B1')">Tháp B1</button>
+        <button class="tab-btn" onclick="filterHandoverByTower('Tháp B2')">Tháp B2</button>
+    </div>
+    <div class="tabs" id="handoverStatusTabs">
+        <button class="tab-btn active" onclick="filterHandoverByStatus('Tất cả')">Tất cả</button>
+        <button class="tab-btn" onclick="filterHandoverByStatus('Đã bàn giao')">Đã bàn giao</button>
+        <button class="tab-btn" onclick="filterHandoverByStatus('Chưa bàn giao')">Chưa bàn giao</button>
+        <button class="tab-btn" onclick="filterHandoverByStatus('Chậm bàn giao')">Chậm bàn giao</button>
+    </div>
+    <div class="handover-summary">
+        <div class="handover-summary-card"><span>ĐÃ BÀN GIAO</span><strong id="handoverCompletedCount">0</strong></div>
+        <div class="handover-summary-card"><span>CHƯA BÀN GIAO</span><strong id="handoverActiveCount">0</strong></div>
+        <div class="handover-summary-card"><span>CHẬM BÀN GIAO</span><strong id="handoverDelayedCount">0</strong></div>
+    </div>
+    <div class="handover-user-id-row">
+        <label for="handoverUserId">ID người cập nhật</label>
+        <input id="handoverUserId" type="text" placeholder="Nhập ID để sửa tiến độ" autocomplete="off">
+    </div>
+    <div class="table-container handover-table">
+        <table>
+            <thead>
+                <tr><th>Tháp</th><th>Tầng</th><th>Ngày bắt đầu</th><th>Ngày kết thúc</th><th>Trạng thái</th><th>Cập nhật</th><th>Ghi chú</th></tr>
+            </thead>
+            <tbody id="handoverTableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ================= TAB 5: ĐÁNH GIÁ CỦA CHT ================= -->
+<div id="viewDanhGiaCHT" class="section-view">
+    <!-- CỘT NHẬP MÃ ID BẢO MẬT (ĐỐI CHIẾU VỚI GOOGLE SHEET) -->
+    <div class="handover-user-id-row" style="margin-bottom: 20px;">
+        <label for="chtUserId">Mã ID Chỉ Huy Trưởng:</label><span id="chtVerifiedText"></span>
+        <input id="chtUserId" type="password" placeholder="Nhập ID CHT (trùng với một ID trong cột B của User)" autocomplete="off">
+        <button class="ok-btn" style="padding: 8px 15px; margin-left: 10px;" onclick="verifyAndLoadCHTData()">XÁC NHẬN ID</button>
+    </div>
+
+    <div class="sub-title" style="margin-top: 10px;">ĐÁNH GIÁ CÔNG VIỆC TỪ TAB NHÂN LỰC</div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tháp / Tầng</th>
+                    <th>Hạng mục</th>
+                    <th>Nhà thầu</th>
+                    <th>Công tác</th>
+                    <th>Nhân lực báo cáo</th>
+                    <th>1. Đánh giá nhân lực</th>
+                    <th>2. Đánh giá tiến độ</th>
+                    <th>Ghi chú CHT</th>
+                </tr>
+            </thead>
+            <tbody id="chtEvaluationTableBody">
+                <!-- Dữ liệu được liên kết và hiển thị sau khi nhập đúng ID -->
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 25px; display: flex; justify-content: flex-end;">
+        <button class="send-btn" onclick="saveCHTEvaluations()">GỬI ĐÁNH GIÁ CHT</button>
     </div>
 </div>
 
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyTlfliOhR58ljBZ6D6fmH-zHE2ch8Ic3y11XkOac9IvS-atef2Fdjf_nc6gWkICnSA/exec";
+
+    function formatDate(dateStr) {
+        if (!dateStr) return "";
+        let d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+            let day = String(d.getDate()).padStart(2, '0');
+            let month = String(d.getMonth() + 1).padStart(2, '0');
+            let year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+        return dateStr;
+    }
+
+    function getTodayString() {
+        const today = new Date();
+        return `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+    }
+
+    function isToday(dateStr) {
+        const parts = String(dateStr || '').trim().split(/[\/-]/);
+        if (parts.length === 3 && parts[0].length <= 2) {
+            return `${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[2]}` === getTodayString();
+        }
+        return formatDate(dateStr) === getTodayString();
+    }
+
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg1GUEIGFJ_3PKHwr-ofi6_K5Zykx95uoBZPBQf44KLqLaz_D9kF3x3ZKo9n96p2KNRQ/exec";
 
     const database = {
         "Tháp A": [
             {
                 hangMuc: "Lắp đặt lan can", 
-                nhaThau: "BÁN VIỆT", 
-                congTac: ["VẬN CHUYỂN VẬT TƯ", "Khoan cấy ty lan can", "Lắp trụ lan can", "Fill lỗ lan can", "Lắp kính lan can", "Lắp tay trụ lan can", "Vệ sinh lan can"]
+                nhaThau: "BẢN VIỆT", 
+                congTac: ["VẬN CHUYỂN VẬT TƯ", "Khoan cấy ty lan can", "Lắp trụ lan can", "Fill lỗ lan can", "Lắp kính lan can", "Lắp tay trụ lan can", "Vệ sinh "]
             },
             {
                 hangMuc: "Nhôm kính", 
                 nhaThau: "VIỆT ANH", 
-                congTac: ["Vận chuyển vật tư", "Lắp đặt khung phụ", "Bơm vữa", "L", "LẮP RON", "B KEO SILICONE", "VỆ SINH"]
+                congTac: ["Vận chuyển vật tư", "Lắp đặt khung phụ", "Bơm vữa", "Lắp khung chính", "gắn Ron","Lắp đặt phụ kiện", "Bắn Silicone", "Vệ sinh"]
             },
             {
                 hangMuc: "Vách kính phòng tắm", 
@@ -428,12 +908,12 @@
             {
                 hangMuc: "Lắp đặt lan can", 
                 nhaThau: "BẢN VIỆT", 
-                congTac: ["Vận chuyển vật tư", "Khoan cấy ty lan can", "Lắp trụ lan can", "Fill lỗ lan can", "Lắp kính lan can", "Lắp tay trụ lan can", "Vệ sinh lan can"]
+                congTac: ["Vận chuyển vật tư", "Khoan cấy ty lan can", "Lắp trụ lan can", "Fill lỗ lan can", "Lắp kính lan can", "Lắp tay trụ lan can", "Vệ sinh"]
             },
             {
                 hangMuc: "Nhôm kính", 
                 nhaThau: "THÁI LONG", 
-                congTac: ["Vận chuyển vật tư", "Lắp đặt khung phụ", "Bơm vữa", "Lắp khung chính", "gắn Ron", "Bắn Silicone", "Vệ sinh"]
+                congTac: ["Vận chuyển vật tư", "Lắp đặt khung phụ", "Bơm vữa", "Lắp khung chính", "gắn Ron","Lắp đặt phụ kiện", "Bắn Silicone", "Vệ sinh"]
             },
             {
                 hangMuc: "Vách kính phòng tắm", 
@@ -444,18 +924,18 @@
         "Tháp B2": [
             {
                 hangMuc: "Lắp đặt lan can", 
-                nhaThau: "BÁN VIỆT", 
+                nhaThau: "BẢN VIỆT", 
                 congTac: ["Vận chuyển vật tư", "Khoan cấy ty lan can", "Lắp trụ lan can", "Fill lỗ lan can", "Lắp kính lan can", "Lắp tay trụ lan can", "Vệ sinh lan can"]
             },
             {
                 hangMuc: "Nhôm kính", 
                 nhaThau: "HƯNG GIA TUỆ", 
-                congTac: ["Vận chuyển vật tư", "Lắp đặt khung phụ", "Bơm vữa", "Lắp khung chính", "gắn Ron", "Bắn Silicone", "Vệ sinh"]
+                 congTac: ["Vận chuyển vật tư", "Lắp đặt khung phụ", "Bơm vữa", "Lắp khung chính", "gắn Ron","Lắp đặt phụ kiện", "Bắn Silicone", "Vệ sinh"]
             },
             {
                 hangMuc: "Vách kính phòng tắm", 
                 nhaThau: "CAO TRUNG NGHĨA", 
-                congTac: ["vận chuyển vật tư", "Lắp đặt kính", "Lắp đặt phụ kiện", "Bán Silicone"]
+                congTac: ["vận chuyển vật tư", "Lắp đặt kính", "Lắp đặt phụ kiện", "Bắn Silicone","Vệ sinh"]
             }
         ]
     };
@@ -466,38 +946,597 @@
         "Tháp B2": 14
     };
 
+    const handoverSchedule = [
+        ['Tháp B1', 13, '10/07/2026', '23/07/2026'], ['Tháp B1', 14, '13/07/2026', '30/07/2026'], ['Tháp B1', 15, '18/07/2026', '06/08/2026'],
+        ['Tháp B1', 16, '23/07/2026', '09/08/2026'], ['Tháp B1', 17, '15/07/2026', '15/08/2026'], ['Tháp B1', 18, '11/07/2026', '17/08/2026'],
+        ['Tháp B1', 19, '12/07/2026', '21/08/2026'], ['Tháp B1', 20, '14/07/2026', '24/08/2026'], ['Tháp B1', 21, '15/07/2026', '28/08/2026'],
+        ['Tháp B1', 22, '18/07/2026', '03/09/2026'], ['Tháp B1', 23, '21/07/2026', '07/09/2026'], ['Tháp B1', 24, '23/07/2026', '11/09/2026'],
+        ['Tháp B1', 25, '25/07/2026', '15/09/2026'], ['Tháp B1', 26, '27/07/2026', '19/09/2026'], ['Tháp B1', 27, '29/07/2026', '23/09/2026'],
+        ['Tháp B1', 28, '31/07/2026', '27/09/2026'], ['Tháp B1', 29, '02/08/2026', '01/10/2026'], ['Tháp B1', 30, '04/08/2026', '05/10/2026'],
+        ['Tháp B1', 31, '06/08/2026', '09/10/2026'], ['Tháp B1', 32, '08/08/2026', '12/10/2026'], ['Tháp B1', 33, '10/08/2026', '17/10/2026'],
+        ['Tháp B1', 34, '12/08/2026', '21/10/2026'], ['Tháp B1', 35, '14/08/2026', '25/10/2026'], ['Tháp B1', 36, '16/08/2026', '04/10/2026'],
+        ['Tháp B1', 37, '18/08/2026', '04/11/2026'], ['Tháp B1', 38, '10/08/2026', '04/11/2026'],
+        ['Tháp B2', 9, '12/07/2026', '06/08/2026'], ['Tháp B2', 10, '14/07/2026', '10/08/2026'], ['Tháp B2', 11, '12/07/2026', '02/08/2026'],
+        ['Tháp B2', 12, '17/07/2026', '13/08/2026'], ['Tháp B2', 13, '19/07/2026', '17/08/2026'], ['Tháp B2', 14, '21/07/2026', '20/08/2026'],
+        ['Tháp B2', 15, '25/07/2026', '23/08/2026'], ['Tháp B2', 16, '27/07/2026', '28/08/2026'], ['Tháp B2', 17, '21/07/2026', '05/09/2026'],
+        ['Tháp B2', 18, '22/07/2026', '09/09/2026'], ['Tháp B2', 19, '23/07/2026', '13/09/2026'], ['Tháp B2', 20, '24/07/2026', '17/09/2026'],
+        ['Tháp B2', 21, '25/07/2026', '21/09/2026'], ['Tháp B2', 22, '26/07/2026', '25/09/2026'], ['Tháp B2', 23, '27/07/2026', '29/09/2026'],
+        ['Tháp B2', 24, '28/07/2026', '03/10/2026'], ['Tháp B2', 25, '31/07/2026', '07/10/2026'], ['Tháp B2', 26, '01/08/2026', '11/10/2026'],
+        ['Tháp B2', 27, '02/08/2026', '15/10/2026'], ['Tháp B2', 28, '03/08/2026', '19/10/2026'], ['Tháp B2', 29, '04/08/2026', '23/10/2026'],
+        ['Tháp B2', 30, '05/08/2026', '27/10/2026'], ['Tháp B2', 31, '06/08/2026', '31/10/2026'], ['Tháp B2', 32, '07/08/2026', '04/11/2026'],
+        ['Tháp B2', 33, '08/08/2026', '11/11/2026'], ['Tháp B2', 34, '09/08/2026', '12/11/2026'], ['Tháp B2', 35, '10/08/2026', '15/11/2026'],
+        ['Tháp B2', 36, '11/08/2026', '19/11/2026'], ['Tháp B2', 37, '12/08/2026', '23/11/2026'], ['Tháp B2', 38, '07/11/2026', '23/11/2026'],
+        ['Tháp A', 8, '24/08/2026', '08/11/2026'], ['Tháp A', 9, '22/08/2026', '04/11/2026'], ['Tháp A', 10, '11/07/2026', '11/08/2026'],
+        ['Tháp A', 11, '20/08/2026', '01/11/2026'], ['Tháp A', 12, '13/07/2026', '22/08/2026'], ['Tháp A', 13, '15/07/2026', '29/08/2026'],
+        ['Tháp A', 14, '18/07/2026', '08/09/2026'], ['Tháp A', 15, '21/07/2026', '15/09/2026'], ['Tháp A', 16, '23/07/2026', '19/09/2026'],
+        ['Tháp A', 17, '26/07/2026', '23/09/2026'], ['Tháp A', 18, '29/07/2026', '27/09/2026'], ['Tháp A', 19, '01/08/2026', '01/10/2026'],
+        ['Tháp A', 20, '03/08/2026', '05/10/2026'], ['Tháp A', 21, '05/08/2026', '09/10/2026'], ['Tháp A', 22, '07/08/2026', '12/10/2026'],
+        ['Tháp A', 23, '09/08/2026', '16/10/2026'], ['Tháp A', 24, '11/08/2026', '19/10/2026'], ['Tháp A', 25, '13/08/2026', '22/10/2026'],
+        ['Tháp A', 26, '15/08/2026', '25/10/2026'], ['Tháp A', 27, '17/08/2026', '29/10/2026'], ['Tháp A', 28, '26/08/2026', '11/11/2026'],
+        ['Tháp A', 29, '28/08/2026', '14/11/2026'], ['Tháp A', 30, '30/08/2026', '17/11/2026'], ['Tháp A', 31, '01/09/2026', '21/11/2026'],
+        ['Tháp A', 32, '30/07/2026', '24/11/2026'], ['Tháp A', 33, '13/08/2026', '27/11/2026'], ['Tháp A', 34, '27/08/2026', '30/11/2026'],
+        ['Tháp A', 35, '08/09/2026', '04/12/2026'], ['Tháp A', 36, '08/09/2026', '08/12/2026'], ['Tháp A', 37, '08/09/2026', '12/12/2026'],
+        ['Tháp A', 38, '10/09/2026', '12/12/2026']
+    ].map(([tower, floor, start, end]) => ({ tower, floor: `Tầng ${floor}`, start, end }));
+
     let currentTowerNL = "Tháp A";
     let currentTowerBC = "Tháp A";
+    let currentReportContractor = "Tất cả";
+    let currentHandoverTower = "Tất cả";
+    let currentHandoverStatus = "Tất cả";
+    let handoverSheetRecords = {};
+    let handoverUserIds = new Set();
+
+    // Trạng thái riêng cho tab Đánh giá CHT.
+    let chtVerifiedUserId = "";
+    let chtEvaluationRows = [];
+
+    const sendingModes = new Set();
 
     function switchMainTab(tabName) {
+        const tabMap = {
+            nhanluc: { button: 0, view: 'viewNhanLuc' },
+            baocao: { button: 1, view: 'viewBaoCao' },
+            dashboard: { button: 2, view: 'viewDashboard' },
+            handover: { button: 3, view: 'viewHandover' },
+            danhgia_cht: { button: 4, view: 'viewDanhGiaCHT' }
+        };
+
+        const target = tabMap[tabName] || tabMap.nhanluc;
+
         document.querySelectorAll('.main-tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.section-view').forEach(view => view.classList.remove('active'));
 
-        if(tabName === 'nhanluc') {
-            document.querySelectorAll('.main-tab-btn')[0].classList.add('active');
-            document.getElementById('viewNhanLuc').classList.add('active');
-        } else if(tabName === 'baocao') {
-            document.querySelectorAll('.main-tab-btn')[1].classList.add('active');
-            document.getElementById('viewBaoCao').classList.add('active');
-        } else {
-            document.querySelectorAll('.main-tab-btn')[2].classList.add('active');
-            document.getElementById('viewDashboard').classList.add('active');
+        const buttons = document.querySelectorAll('.main-tab-btn');
+        if (buttons[target.button]) buttons[target.button].classList.add('active');
+
+        const view = document.getElementById(target.view);
+        if (view) view.classList.add('active');
+
+        if (tabName === 'baocao') {
+            syncNhanLucToReport();
+        } else if (tabName === 'dashboard') {
             updateDashboardStats();
+        } else if (tabName === 'handover') {
+            renderHandoverTable();
+        } else if (tabName === 'danhgia_cht') {
+            const chtId = document.getElementById('chtUserId')?.value.trim() || '';
+            if (chtId && chtVerifiedUserId === chtId) {
+                verifyAndLoadCHTData();
+            }
         }
+    }
+
+
+    function verifyAndLoadCHTData() {
+        const input = document.getElementById('chtUserId');
+        const userId = input?.value.trim() || '';
+        const body = document.getElementById('chtEvaluationTableBody');
+
+        if (!userId) {
+            alert('Vui lòng nhập Mã ID Chỉ Huy Trưởng.');
+            input?.focus();
+            return;
+        }
+
+        if (body) {
+            body.innerHTML = '<tr><td colspan="9" style="text-align:center;">Đang kiểm tra ID và tải dữ liệu CHT...</td></tr>';
+        }
+
+        fetch(`${SCRIPT_URL}?action=verifyCHT&userId=${encodeURIComponent(userId)}`, {
+            method: 'GET',
+            cache: 'no-store'
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Không kết nối được Apps Script.');
+            return response.json();
+        })
+        .then(data => {
+            if (!data || data.verified !== true) {
+                chtVerifiedUserId = '';
+                chtEvaluationRows = [];
+                if (body) {
+                    body.innerHTML = '<tr><td colspan="9" style="text-align:center;">Không có quyền truy cập CHT.</td></tr>';
+                }
+                alert(data?.message || 'ID không hợp lệ hoặc không có quyền CHT.');
+                return;
+            }
+
+            chtVerifiedUserId = userId;
+            chtEvaluationRows = Array.isArray(data.rows) ? data.rows : [];
+
+            const verifiedText = document.getElementById('chtVerifiedText');
+            if (verifiedText) {
+                verifiedText.textContent = `✓ Đã xác thực: ${data.userId || userId} (${data.role || 'CHT'})`;
+                verifiedText.className = 'cht-verified';
+            }
+
+            renderCHTEvaluationTable(chtEvaluationRows);
+        })
+        .catch(error => {
+            console.error('Lỗi tải dữ liệu CHT:', error);
+            chtVerifiedUserId = '';
+            chtEvaluationRows = [];
+            if (body) {
+                body.innerHTML = '<tr><td colspan="9" style="text-align:center;">Không tải được dữ liệu CHT.</td></tr>';
+            }
+            alert('Không thể tải dữ liệu CHT. Kiểm tra URL Apps Script và quyền triển khai.');
+        });
+    }
+
+    function renderCHTEvaluationTable(rows) {
+        const body = document.getElementById('chtEvaluationTableBody');
+        if (!body) return;
+
+        if (!Array.isArray(rows) || rows.length === 0) {
+            body.innerHTML = '<tr><td colspan="8" style="text-align:center;">Hôm nay chưa có công việc trong tab Nhân lực để CHT đánh giá.</td></tr>';
+            return;
+        }
+
+        body.innerHTML = rows.map((row, index) => `
+            <tr data-cht-index="${index}">
+                <td>${escapeHtml(row.thapTang || '')}</td>
+                <td>${escapeHtml(row.hangMuc || '')}</td>
+                <td>${escapeHtml(row.nhaThau || '')}</td>
+                <td>${escapeHtml(row.congTac || '')}</td>
+                <td>${escapeHtml(row.nhanLucBaoCao || '0')} công nhân</td>
+
+                <td>
+                    <select class="cht-nhanluc" aria-label="Đánh giá nhân lực">
+                        <option value="">-- Chọn --</option>
+                        <option value="Đạt" ${row.nhanLucDanhGia === 'Đạt' ? 'selected' : ''}>Đạt</option>
+                        <option value="Không đạt" ${row.nhanLucDanhGia === 'Không đạt' ? 'selected' : ''}>Không đạt</option>
+                    </select>
+                </td>
+
+                <td>
+                    <select class="cht-tiendo" aria-label="Đánh giá tiến độ">
+                        <option value="">-- Chọn --</option>
+                        <option value="Đảm bảo" ${row.tienDoDanhGia === 'Đảm bảo' ? 'selected' : ''}>Đảm bảo</option>
+                        <option value="Không đảm bảo" ${row.tienDoDanhGia === 'Không đảm bảo' ? 'selected' : ''}>Không đảm bảo</option>
+                    </select>
+                </td>
+
+                <td>
+                    <input type="text"
+                           class="cht-note"
+                           value="${escapeHtml(row.ghiChuCHT || '')}"
+                           placeholder="Ghi chú CHT...">
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function getCHTEvaluationRows() {
+        const body = document.getElementById('chtEvaluationTableBody');
+        if (!body) return [];
+
+        return Array.from(body.querySelectorAll('tr[data-cht-index]')).map(tr => {
+            const index = Number(tr.dataset.chtIndex);
+            const base = chtEvaluationRows[index] || {};
+
+            return {
+                ngay: base.ngay || getTodayString(),
+                thapTang: base.thapTang || tr.cells[0]?.innerText.trim() || '',
+                hangMuc: base.hangMuc || tr.cells[1]?.innerText.trim() || '',
+                nhaThau: base.nhaThau || tr.cells[2]?.innerText.trim() || '',
+                congTac: base.congTac || tr.cells[3]?.innerText.trim() || '',
+                nhanLucBaoCao: base.nhanLucBaoCao || '',
+                tienDo: '',
+                trangThai: '',
+                nhanLucDanhGia: tr.querySelector('.cht-nhanluc')?.value || '',
+                tienDoDanhGia: tr.querySelector('.cht-tiendo')?.value || '',
+                ghiChuCHT: tr.querySelector('.cht-note')?.value.trim() || ''
+            };
+        });
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function saveCHTEvaluations() {
+        if (!chtVerifiedUserId) {
+            alert('Vui lòng xác nhận ID CHT trước khi gửi đánh giá.');
+            document.getElementById('chtUserId')?.focus();
+            return;
+        }
+
+        const rows = getCHTEvaluationRows();
+        if (!rows.length) {
+            alert('Không có công việc từ tab Nhân lực để đánh giá.');
+            return;
+        }
+
+        const incomplete = rows.find(row => !row.nhanLucDanhGia || !row.tienDoDanhGia);
+        if (incomplete) {
+            alert('Vui lòng đánh giá đủ Nhân lực và Tiến độ cho tất cả công việc.');
+            return;
+        }
+
+        const button = document.querySelector('#viewDanhGiaCHT .send-btn');
+        if (button) {
+            button.disabled = true;
+            button.dataset.originalText = button.innerText;
+            button.innerText = 'ĐANG GỬI...';
+        }
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            // Không dùng no-cors: cần đọc phản hồi từ Apps Script.
+            // text/plain giúp tránh preflight OPTIONS của trình duyệt.
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                type: 'danhgia_cht',
+                userId: chtVerifiedUserId,
+                rows
+            }),
+            redirect: 'follow',
+            cache: 'no-store'
+        })
+        .then(async response => {
+            if (!response.ok) {
+                throw new Error(`Apps Script trả về HTTP ${response.status}`);
+            }
+
+            const text = await response.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseError) {
+                console.error('Phản hồi không phải JSON:', text);
+                throw new Error('Apps Script trả về phản hồi không hợp lệ.');
+            }
+
+            if (!data || data.status !== 'success') {
+                throw new Error(data?.message || 'Apps Script không xác nhận đã ghi dữ liệu.');
+            }
+
+            return data;
+        })
+        .then(data => {
+            alert(data.message || 'Đã ghi đánh giá CHT vào sheet CHT.');
+            // Đọc lại dữ liệu từ server để đồng bộ giao diện sau khi lưu.
+            return verifyAndLoadCHTData();
+        })
+        .catch(error => {
+            console.error('Lỗi lưu đánh giá CHT:', error);
+            alert(`Không thể xác nhận đã ghi sheet CHT.\n\n${error.message}`);
+        })
+        .finally(() => {
+            if (button) {
+                button.disabled = false;
+                button.innerText = button.dataset.originalText || 'GỬI ĐÁNH GIÁ CHT';
+            }
+        });
+    }
+
+    function parseHandoverDate(dateString) {
+        const [day, month, year] = dateString.split('/').map(Number);
+        return new Date(year, month - 1, day);
+    }
+
+    function getHandoverRecords() {
+        let saved = {};
+        let savedNotes = {};
+        try {
+            saved = JSON.parse(localStorage.getItem('handover_statuses') || '{}');
+            savedNotes = JSON.parse(localStorage.getItem('handover_notes') || '{}');
+        } catch (error) {
+            saved = {};
+            savedNotes = {};
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return handoverSchedule.map(item => {
+            const key = `${item.tower}-${item.floor}`;
+            const sheetRecord = handoverSheetRecords[key];
+            const sheetStatus = sheetRecord?.trangThai;
+            const status = sheetStatus || (saved[key] === 'Đã bàn giao'
+                ? 'Đã bàn giao'
+                : today >= parseHandoverDate(item.end) ? 'Chậm bàn giao' : 'Chưa bàn giao');
+            const ghiChu = sheetRecord?.ghiChu || savedNotes[key] || '';
+            return { ...item, key, id: sheetRecord?.id || '', status, ghiChu };
+        });
+    }
+
+    function updateHandoverStatus(key, status) {
+        const userId = getHandoverUserId();
+        if (!userId) return;
+        let saved = {};
+        try {
+            saved = JSON.parse(localStorage.getItem('handover_statuses') || '{}');
+        } catch (error) {
+            saved = {};
+        }
+        saved[key] = status;
+        localStorage.setItem('handover_statuses', JSON.stringify(saved));
+        const record = handoverSchedule.find(item => `${item.tower}-${item.floor}` === key);
+        if (record) {
+            const currentRecord = getHandoverRecords().find(item => item.key === key);
+            saveHandoverStatusToSheet(record, status, currentRecord?.ghiChu || '', currentRecord?.id || '', userId);
+        }
+        renderHandoverTable();
+    }
+
+    function updateHandoverNote(key, ghiChu) {
+        const userId = getHandoverUserId();
+        if (!userId) return;
+        let savedNotes = {};
+        try {
+            savedNotes = JSON.parse(localStorage.getItem('handover_notes') || '{}');
+        } catch (error) {
+            savedNotes = {};
+        }
+        savedNotes[key] = ghiChu;
+        localStorage.setItem('handover_notes', JSON.stringify(savedNotes));
+        const record = handoverSchedule.find(item => `${item.tower}-${item.floor}` === key);
+        const currentRecord = getHandoverRecords().find(item => item.key === key);
+        if (record) saveHandoverStatusToSheet(record, currentRecord?.status || 'Chưa bàn giao', ghiChu, currentRecord?.id || '', userId);
+    }
+
+    function getHandoverUserId() {
+        const input = document.getElementById('handoverUserId');
+        const userId = input?.value.trim() || '';
+        if (!userId) {
+            alert('Vui lòng nhập ID được cấp trong sheet user trước khi cập nhật.');
+            input?.focus();
+            return '';
+        }
+        if (handoverUserIds.size && !handoverUserIds.has(userId)) {
+            alert('ID không hợp lệ. Vui lòng kiểm tra lại sheet user.');
+            input?.focus();
+            return '';
+        }
+        return userId;
+    }
+
+    function saveHandoverStatusToSheet(record, status, ghiChu, id, userId) {
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'handover',
+                userId,
+                rows: [{
+                    thap: record.tower,
+                    tang: record.floor,
+                    ngayBatDau: record.start,
+                    ngayDuKien: record.end,
+                    trangThai: status,
+                    ghiChu,
+                    ngayCapNhat: getTodayString(),
+                    id
+                }]
+            })
+        }).catch(error => console.error('Lỗi đồng bộ tiến độ giao nhà:', error));
+    }
+
+    function filterHandoverByTower(tower) {
+        currentHandoverTower = tower;
+        document.querySelectorAll('#handoverTowerTabs .tab-btn').forEach(button => {
+            button.classList.toggle('active', button.innerText.trim() === tower);
+        });
+        renderHandoverTable();
+    }
+
+    function filterHandoverByStatus(status) {
+        currentHandoverStatus = status;
+        document.querySelectorAll('#handoverStatusTabs .tab-btn').forEach(button => {
+            button.classList.toggle('active', button.innerText.trim() === status);
+        });
+        renderHandoverTable();
+    }
+
+    function renderHandoverTable() {
+        const body = document.getElementById('handoverTableBody');
+        if (!body) return;
+
+        const records = getHandoverRecords();
+        const counts = records.reduce((result, item) => {
+            result[item.status] += 1;
+            return result;
+        }, { 'Đã bàn giao': 0, 'Chưa bàn giao': 0, 'Chậm bàn giao': 0 });
+        document.getElementById('handoverCompletedCount').innerText = counts['Đã bàn giao'];
+        document.getElementById('handoverActiveCount').innerText = counts['Chưa bàn giao'];
+        document.getElementById('handoverDelayedCount').innerText = counts['Chậm bàn giao'];
+
+        const filtered = records.filter(item =>
+            (currentHandoverTower === 'Tất cả' || item.tower === currentHandoverTower) &&
+            (currentHandoverStatus === 'Tất cả' || item.status === currentHandoverStatus)
+        );
+        body.innerHTML = filtered.map(item => {
+            const statusClass = item.status === 'Đã bàn giao' ? 'completed' : item.status === 'Chậm bàn giao' ? 'delayed' : 'active';
+            return `<tr>
+                <td>${item.tower}</td><td>${item.floor}</td><td>${item.start}</td><td>${item.end}</td>
+                <td><span class="handover-status ${statusClass}">${item.status}</span></td>
+                <td><select aria-label="Cập nhật ${item.tower} ${item.floor}" onchange="updateHandoverStatus('${item.key}', this.value)">
+                    ${item.status === 'Chậm bàn giao' ? '<option value="auto" selected disabled>Chậm bàn giao (tự động)</option>' : ''}
+                    <option value="Chưa bàn giao" ${item.status === 'Chưa bàn giao' ? 'selected' : ''}>Chưa bàn giao</option><option value="Đã bàn giao" ${item.status === 'Đã bàn giao' ? 'selected' : ''}>Đã bàn giao</option>
+                </select></td>
+                <td><input type="text" value="${item.ghiChu.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}" placeholder="Lý do chậm trễ..." aria-label="Ghi chú ${item.tower} ${item.floor}" onchange="updateHandoverNote('${item.key}', this.value)"></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function setupThemeToggle() {
+        const toggleBtn = document.getElementById('themeToggle');
+        if (!toggleBtn) return;
+
+        const savedTheme = localStorage.getItem('themeMode') || 'dark';
+        const shouldLight = savedTheme === 'light';
+        document.body.classList.toggle('light-theme', shouldLight);
+        toggleBtn.textContent = shouldLight ? '🌙 Chế độ tối' : '☀️ Chế độ sáng';
+
+        toggleBtn.addEventListener('click', () => {
+            const isLight = document.body.classList.toggle('light-theme');
+            localStorage.setItem('themeMode', isLight ? 'light' : 'dark');
+            toggleBtn.textContent = isLight ? '🌙 Chế độ tối' : '☀️ Chế độ sáng';
+        });
     }
 
     function initForm() {
         const nlTang = document.getElementById('nlSelectTang');
-        const bcTang = document.getElementById('bcSelectTang');
         nlTang.innerHTML = "";
-        bcTang.innerHTML = "";
+        
+        // Thêm Tầng 1 theo yêu cầu
+        nlTang.innerHTML += `<option value="Tầng 1">Tầng 1</option>`;
+
         for (let i = 8; i <= 38; i++) {
             nlTang.innerHTML += `<option value="Tầng ${i}">Tầng ${i}</option>`;
-            bcTang.innerHTML += `<option value="Tầng ${i}">Tầng ${i}</option>`;
         }
+        setupThemeToggle();
         updateDropdowns('nhanluc');
-        updateDropdowns('baocao');
+        trackReportEdits();
+        renderHandoverTable();
         loadDataFromGoogleSheets();
+    }
+
+    function syncNhanLucToReport() {
+        const reportBody = document.getElementById('reportTableBody');
+        if (!reportBody) return;
+
+        document.querySelectorAll('#nlTableBody tr').forEach(sourceRow => {
+            const sourceCells = sourceRow.querySelectorAll('td');
+            if (sourceCells.length < 7) return;
+
+            const sourceKey = makeReportKey(Array.from(sourceCells).slice(1, 5).map(cell => cell.innerText));
+            const matchingRows = Array.from(reportBody.rows).filter(row => row.dataset.sourceKey === sourceKey);
+            if (matchingRows.length) {
+                matchingRows.slice(1).forEach(row => row.remove());
+                return;
+            }
+
+            const reportRow = document.createElement('tr');
+            reportRow.dataset.sourceKey = sourceKey;
+            reportRow.dataset.userModified = 'false';
+            reportRow.innerHTML = `
+                <td>${sourceCells[1].innerText}</td>
+                <td>${sourceCells[2].innerText}</td>
+                <td>${sourceCells[3].innerText}</td>
+                <td>${sourceCells[4].innerText}</td>
+                <td><input type="text" placeholder="Nhập căn..." class="report-apartment"></td>
+                <td><input type="text" placeholder="VD: 100%" class="report-progress"></td>
+                <td><label class="status-toggle"><input type="checkbox" class="report-status" onchange="updateStatusLabel(this)"><span class="toggle-track"></span><span class="status-label">Chưa xong</span></label></td>
+                <td><input type="text" placeholder="Ghi chú báo cáo..." class="report-note"></td>
+                <td><button class="delete-btn" onclick="deleteRow(this, 'baocao')">Xóa</button></td>
+            `;
+            reportRow.dataset.original = JSON.stringify(getReportRowValues(reportRow));
+            reportBody.appendChild(reportRow);
+        });
+    }
+
+    function filterReportByContractor(contractorName) {
+        currentReportContractor = contractorName;
+        document.querySelectorAll('#reportContractorTabs .tab-btn').forEach(button => {
+            button.classList.toggle('active', button.innerText.trim() === contractorName);
+        });
+        document.querySelectorAll('#reportTableBody tr').forEach(row => {
+            const contractor = row.cells[2] ? row.cells[2].innerText.trim() : '';
+            row.style.display = contractorName === 'Tất cả' || contractor === contractorName ? '' : 'none';
+        });
+    }
+
+    function updateStatusLabel(toggle) {
+        toggle.closest('.status-toggle').querySelector('.status-label').innerText = toggle.checked ? 'Đã xong' : 'Chưa xong';
+    }
+
+    function trackReportEdits() {
+        const reportBody = document.getElementById('reportTableBody');
+        if (!reportBody || reportBody.dataset.editTracking === 'true') return;
+        const markModified = event => {
+            const row = event.target.closest('tr');
+            if (row) row.dataset.userModified = 'true';
+        };
+        reportBody.addEventListener('input', markModified);
+        reportBody.addEventListener('change', markModified);
+        reportBody.dataset.editTracking = 'true';
+    }
+
+    function getReportRowValues(row) {
+        const cells = row.querySelectorAll('td');
+        return {
+            ngay: getTodayString(),
+            thapTang: cells[0]?.innerText.trim() || '',
+            hangMuc: cells[1]?.innerText.trim() || '',
+            nhaThau: cells[2]?.innerText.trim() || '',
+            congTac: cells[3]?.innerText.trim() || '',
+            can: cells[4]?.querySelector('.report-apartment')?.value.trim() || cells[4]?.innerText.trim() || '',
+            tienDo: cells[5]?.querySelector('input')?.value.trim() || '',
+            trangThai: cells[6]?.querySelector('.report-status')?.checked ? 'Đã xong' : 'Chưa xong',
+            ghiChu: cells[7]?.querySelector('input')?.value.trim() || ''
+        };
+    }
+
+    function makeReportKey(parts) {
+        return parts.map(value => String(value || '').trim().toLowerCase()).join('\u001f');
+    }
+
+    function addPhatSinhTask() {
+        const thap = document.getElementById('psThap').value;
+        const tang = document.getElementById('psTang').value;
+        const nhaThau = document.getElementById('psNhaThau').value;
+        const noiDung = document.getElementById('psCongTac').value.trim();
+        const nhanLuc = document.getElementById('psNhanLuc').value.trim();
+        if (!noiDung) {
+            alert('Vui lòng nhập nội dung công tác phát sinh!');
+            return;
+        }
+
+        const row = document.createElement('tr');
+        row.dataset.extraTask = 'true';
+        row.dataset.userModified = 'true';
+        row.innerHTML = `
+            <td>${tang} - ${thap}</td>
+            <td>${document.getElementById('psHangMuc').value}</td>
+            <td>${nhaThau}</td>
+            <td>${noiDung}</td>
+            <td><input type="text" placeholder="Nhập căn..." class="report-apartment"></td>
+            <td><input type="text" placeholder="VD: 100%" class="report-progress"></td>
+            <td><label class="status-toggle"><input type="checkbox" class="report-status" onchange="updateStatusLabel(this)"><span class="toggle-track"></span><span class="status-label">Chưa xong</span></label></td>
+            <td><input type="text" placeholder="Ghi chú báo cáo..." class="report-note"></td>
+            <td><button class="delete-btn" onclick="deleteRow(this, 'baocao')">Xóa</button></td>
+        `;
+        row.dataset.original = JSON.stringify(getReportRowValues(row));
+        const reportBody = document.getElementById('reportTableBody');
+        const matchingRow = Array.from(reportBody.rows).find(reportRow => reportRow.cells[2]?.innerText.trim() === nhaThau);
+        if (matchingRow) reportBody.insertBefore(row, matchingRow);
+        else reportBody.appendChild(row);
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (currentReportContractor !== 'Tất cả') filterReportByContractor(currentReportContractor);
+        document.getElementById('psCongTac').value = '';
+        document.getElementById('psNhanLuc').value = '';
+    }
+
+    function focusPhatSinhForm() {
+        document.getElementById('psCongTac').focus();
     }
 
     function loadDataFromGoogleSheets() {
@@ -505,43 +1544,79 @@
         .then(response => response.json())
         .then(data => {
             const nlBody = document.getElementById('nlTableBody');
+            const bcBody = document.getElementById('reportTableBody');
+
+            handoverSheetRecords = {};
+            handoverUserIds = new Set();
+            (data.tienDoGiaoNha || []).forEach(row => {
+                handoverSheetRecords[`${row.thap}-${row.tang}`] = row;
+            });
+            renderHandoverTable();
+            
             nlBody.innerHTML = "";
+            bcBody.innerHTML = "";
+
+            const today = new Date();
+            const dayCurrent = String(today.getDate()).padStart(2, '0');
+            const monthCurrent = String(today.getMonth() + 1).padStart(2, '0');
+            const yearCurrent = today.getFullYear();
+            const todayStr = `${dayCurrent}/${monthCurrent}/${yearCurrent}`;
+
             if(data.nhanLuc) {
                 data.nhanLuc.forEach(row => {
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${row.ngay}</td>
-                        <td>${row.tang}</td>
-                        <td>${row.hangMuc}</td>
-                        <td>${row.nhaThau}</td>
-                        <td>${row.congTac}</td>
-                        <td class="col-nhanluc" data-val="${row.soLuong}">${row.soLuong} công nhân</td>
-                        <td>${row.ghiChu}</td>
-                        <td><button class="delete-btn" onclick="deleteRow(this, 'nhanluc')">Xóa</button></td>
-                    `;
-                    nlBody.prepend(tr);
+                    let formattedDate = formatDate(row.ngay);
+                    if (isToday(row.ngay)) {
+                        let tr = document.createElement('tr');
+                        tr.setAttribute('data-saved', 'true');
+                        tr.innerHTML = `
+                            <td>${formattedDate}</td>
+                            <td>${row.tang}</td>
+                            <td>${row.hangMuc}</td>
+                            <td>${row.nhaThau}</td>
+                            <td>${row.congTac}</td>
+                            <td class="col-nhanluc" data-val="${row.soLuong}">${row.soLuong} công nhân</td>
+                            <td>${row.ghiChu}</td>
+                            <td><button class="delete-btn" onclick="deleteRow(this, 'nhanluc')">Xóa</button></td>
+                        `;
+                        nlBody.prepend(tr);
+                    }
                 });
                 updateTotal();
             }
 
-            const bcBody = document.getElementById('bcTableBody');
-            bcBody.innerHTML = "";
-            if(data.baoCao) {
+            if (data.baoCao) {
+                const latestReportRows = new Map();
                 data.baoCao.forEach(row => {
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${row.ngay}</td>
-                        <td>${row.thapTang}</td>
-                        <td>${row.hangMuc}</td>
-                        <td>${row.nhaThau}</td>
-                        <td>${row.can}</td>
-                        <td><b>${row.trangThai}</b></td>
-                        <td>${row.ghiChu}</td>
+                    const formattedDate = formatDate(row.ngay);
+                    if (!isToday(row.ngay)) return;
+                    latestReportRows.set(makeReportKey([row.thapTang, row.hangMuc, row.nhaThau, row.congTac]), row);
+                });
+
+                latestReportRows.forEach(row => {
+                    const formattedDate = formatDate(row.ngay);
+
+                    const reportRow = document.createElement('tr');
+                    const sourceKey = makeReportKey([row.thapTang, row.hangMuc, row.nhaThau, row.congTac]);
+                    reportRow.dataset.sourceKey = sourceKey;
+                    reportRow.dataset.saved = 'true';
+                    reportRow.dataset.userModified = 'false';
+                    reportRow.innerHTML = `
+                        <td>${row.thapTang || ''}</td>
+                        <td>${row.hangMuc || ''}</td>
+                        <td>${row.nhaThau || ''}</td>
+                        <td>${row.congTac || ''}</td>
+                        <td><input type="text" value="${row.can || ''}" placeholder="Nhập căn..." class="report-apartment"></td>
+                        <td><input type="text" value="${row.tienDo || ''}" placeholder="VD: 100%" class="report-progress"></td>
+                        <td><label class="status-toggle"><input type="checkbox" class="report-status" ${row.trangThai === 'Đã xong' ? 'checked' : ''} onchange="updateStatusLabel(this)"><span class="toggle-track"></span><span class="status-label">${row.trangThai === 'Đã xong' ? 'Đã xong' : 'Chưa xong'}</span></label></td>
+                        <td><input type="text" value="${row.ghiChu || ''}" placeholder="Ghi chú báo cáo..." class="report-note"></td>
                         <td><button class="delete-btn" onclick="deleteRow(this, 'baocao')">Xóa</button></td>
                     `;
-                    bcBody.prepend(tr);
+                    reportRow.dataset.original = JSON.stringify(getReportRowValues(reportRow));
+                    bcBody.appendChild(reportRow);
                 });
             }
+
+            syncNhanLucToReport();
             updateDashboardStats();
         })
         .catch(err => console.log("Lỗi tải dữ liệu chung:", err));
@@ -563,7 +1638,7 @@
                 btn.classList.remove('active');
                 if(btn.innerText === towerName) btn.classList.add('active');
             });
-            updateDropdowns('baocao');
+            syncNhanLucToReport();
         }
     }
 
@@ -576,22 +1651,6 @@
                 hmSelect.innerHTML += `<option value="${item.hangMuc}">${item.hangMuc}</option>`;
             });
             updateSubDropdowns('nhanluc');
-        } else {
-            const list = database[currentTowerBC];
-            const hmSelect = document.getElementById('bcSelectHangMuc');
-            hmSelect.innerHTML = "";
-            list.forEach(item => {
-                hmSelect.innerHTML += `<option value="${item.hangMuc}">${item.hangMuc}</option>`;
-            });
-            
-            const canSelect = document.getElementById('bcSelectCan');
-            canSelect.innerHTML = "";
-            const totalCans = towerConfigs[currentTowerBC] || 14;
-            for(let c = 1; c <= totalCans; c++) {
-                canSelect.innerHTML += `<option value="Căn ${c}">Căn ${c}</option>`;
-            }
-
-            updateSubDropdowns('baocao');
         }
     }
 
@@ -607,12 +1666,6 @@
                     ctSelect.innerHTML += `<option value="${ct}">${ct}</option>`;
                 });
             }
-        } else {
-            const selectedHM = document.getElementById('bcSelectHangMuc').value;
-            const found = database[currentTowerBC].find(item => item.hangMuc === selectedHM);
-            if (found) {
-                document.getElementById('bcSelectNhaThau').innerHTML = `<option value="${found.nhaThau}">${found.nhaThau}</option>`;
-            }
         }
     }
 
@@ -622,7 +1675,7 @@
         const nhathau = document.getElementById('nlSelectNhaThau').value;
         const congtac = document.getElementById('nlSelectCongTac').value;
         const nhanlucVal = document.getElementById('inputNhanLuc').value;
-        const ghichu = document.getElementById('nlInputGhiChu').value || "Không có";
+        const ghichu = document.getElementById('nlInputGhiChu').value || "";
 
         if(!nhanlucVal || isNaN(nhanlucVal)) {
             alert('Vui lòng nhập số lượng công nhân hợp lệ!');
@@ -631,7 +1684,7 @@
 
         const nhanluc = parseInt(nhanlucVal);
         const tbody = document.getElementById('nlTableBody');
-        const currentDate = new Date().toLocaleDateString('vi-VN');
+        const currentDate = getTodayString();
         
         let tr = document.createElement('tr');
         tr.innerHTML = `
@@ -651,38 +1704,18 @@
         updateDashboardStats();
     }
 
-    function addBaoCaoRow() {
-        const tang = document.getElementById('bcSelectTang').value;
-        const hangmuc = document.getElementById('bcSelectHangMuc').value;
-        const nhathau = document.getElementById('bcSelectNhaThau').value;
-        const can = document.getElementById('bcSelectCan').value;
-        const trangthai = document.getElementById('bcSelectTrangThai').value;
-        const ghichu = document.getElementById('bcInputGhiChu').value || "Không có";
-
-        const tbody = document.getElementById('bcTableBody');
-        const currentDate = new Date().toLocaleDateString('vi-VN');
-        
-        let tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${currentDate}</td>
-            <td>${currentTowerBC} - ${tang}</td>
-            <td>${hangmuc}</td>
-            <td>${nhathau}</td>
-            <td>${can}</td>
-            <td><b>${trangthai}</b></td>
-            <td>${ghichu}</td>
-            <td><button class="delete-btn" onclick="deleteRow(this, 'baocao')">Xóa</button></td>
-        `;
-        tbody.prepend(tr);
-        document.getElementById('bcInputGhiChu').value = '';
-        updateDashboardStats();
-    }
-
     function deleteRow(btn, mode) {
         btn.closest('tr').remove();
         if(mode === 'nhanluc') updateTotal();
         updateDashboardStats();
     }
+
+   function clearAllData(mode) {
+    const tbodyId = mode === 'nhanluc' ? 'nlTableBody' : 'reportTableBody';
+    document.getElementById(tbodyId).innerHTML = "";
+    if(mode === 'nhanluc') updateTotal();
+    updateDashboardStats();
+}
 
     function updateTotal() {
         const rows = document.querySelectorAll('#nlTableBody tr');
@@ -759,16 +1792,29 @@
         });
 
         if(container.children.length === 0) {
-            container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 30px;">Chưa có dữ liệu thống kê nào được ghi nhận.</div>`;
+            container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 30px;">Chưa có dữ liệu thống kê nào được ghi nhận trong ngày hôm nay.</div>`;
         }
     }
 
     function sendData(mode) {
-        const tbodyId = mode === 'nhanluc' ? 'nlTableBody' : 'bcTableBody';
-        const rows = document.querySelectorAll(`#${tbodyId} tr`);
+        if (sendingModes.has(mode)) return;
+        sendingModes.add(mode);
+        const sendButton = document.querySelector(`.send-btn[onclick="sendData('${mode}')"]`);
+        if (sendButton) {
+            sendButton.disabled = true;
+            sendButton.dataset.originalText = sendButton.innerText;
+            sendButton.innerText = 'ĐANG GỬI...';
+        }
+
+        const tbodyId = mode === 'nhanluc' ? 'nlTableBody' : 'reportTableBody';
+        const candidateRows = document.querySelectorAll(`#${tbodyId} tr`);
+        const rows = mode === 'baocao'
+            ? Array.from(candidateRows).filter(row => row.dataset.userModified === 'true' || row.dataset.original !== JSON.stringify(getReportRowValues(row)))
+            : Array.from(candidateRows).filter(row => row.dataset.saved !== 'true');
         
         if (rows.length === 0) {
-            alert('Chưa có dữ liệu nào để gửi!');
+            alert('Không có dữ liệu mới nào để gửi!');
+            finishSending(mode, sendButton);
             return;
         }
 
@@ -783,22 +1829,13 @@
                     hangMuc: cols[2].innerText,
                     nhaThau: cols[3].innerText,
                     congTac: cols[4].innerText,
-                    soLuong: cols[5].getAttribute('data-val'),
+                    soLuong: cols[5].getAttribute('data-val') || cols[5].innerText,
                     ghiChu: cols[6].innerText
                 });
             });
         } else {
             rows.forEach(row => {
-                const cols = row.querySelectorAll('td');
-                payloadData.push({
-                    ngay: cols[0].innerText,
-                    thapTang: cols[1].innerText,
-                    hangMuc: cols[2].innerText,
-                    nhaThau: cols[3].innerText,
-                    can: cols[4].innerText,
-                    trangThai: cols[5].innerText,
-                    ghiChu: cols[6].innerText
-                });
+                payloadData.push(getReportRowValues(row));
             });
         }
 
@@ -807,7 +1844,22 @@
             rows: payloadData
         };
 
-        alert('Đang gửi dữ liệu lên Google Sheets...');
+        // Backend mới có kiểm tra ID ở server.
+        // Nếu chưa có ID cho Nhân lực/Báo cáo thì hỏi một lần tại thời điểm gửi.
+        if (mode === 'nhanluc' || mode === 'baocao') {
+            let generalUserId = localStorage.getItem('general_user_id') || '';
+            if (!generalUserId) {
+                generalUserId = prompt('Nhập ID người dùng được cấp trong sheet user:')?.trim() || '';
+                if (!generalUserId) {
+                    finishSending(mode, sendButton);
+                    return;
+                }
+                localStorage.setItem('general_user_id', generalUserId);
+            }
+            payload.userId = generalUserId;
+        }
+
+        alert('Đang gửi dữ liệu mới lên Google Sheets...');
 
         fetch(SCRIPT_URL, {
             method: 'POST',
@@ -818,12 +1870,22 @@
             body: JSON.stringify(payload)
         })
         .then(() => {
-            alert('Đã đồng bộ thành công lên Google Sheets!');
+            alert('Đã đồng bộ thành công!');
+            loadDataFromGoogleSheets(); 
         })
         .catch(error => {
             console.error('Lỗi:', error);
             alert('Có lỗi xảy ra khi gửi dữ liệu!');
-        });
+        })
+        .finally(() => finishSending(mode, sendButton));
+    }
+
+    function finishSending(mode, sendButton) {
+        sendingModes.delete(mode);
+        if (sendButton) {
+            sendButton.disabled = false;
+            sendButton.innerText = sendButton.dataset.originalText || 'GỬI DỮ LIỆU';
+        }
     }
 
     window.onload = initForm;
