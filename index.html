@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <title>Quản lý Nhân lực & Thi công Công trình</title>
     <!-- v16: bootstrap nhẹ, tải theo tab, không reload Sheets sau mỗi lần lưu -->
+    <!-- v18: tối ưu đọc dữ liệu (textContent thay innerText ở vòng lặp nhiều dòng); tab CHT đổi thành đánh giá theo nhà thầu (Đạt/Không đạt, lý do, giải pháp) -->
     
 
 
 <script>
         // CƠ CHẾ TỰ ĐỘNG CẬP NHẬT KHI CÓ CODE MỚI
-        const APP_VERSION = "2026.09.15-v17";  
+        const APP_VERSION = "2026.09.19-v18";  
         if (localStorage.getItem('app_version') !== APP_VERSION) {
             localStorage.setItem('app_version', APP_VERSION);
             window.location.reload(true);
@@ -813,22 +814,46 @@
         <button class="ok-btn" type="button" onclick="verifyAndLoadCHTData()">XÁC NHẬN ID</button>
         <span id="chtVerifyStatus"></span>
     </div>
+
+    <div class="filter-panel">
+        <div class="filter-group">
+            <label>NHÀ THẦU</label>
+            <select id="chtSelectNhaThau" disabled></select>
+        </div>
+        <div class="filter-group">
+            <label>ĐÁNH GIÁ CÔNG VIỆC</label>
+            <select id="chtSelectDanhGia" disabled>
+                <option value="">-- Chọn --</option>
+                <option value="Đạt">Đạt</option>
+                <option value="Không đạt">Không đạt</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>LÝ DO</label>
+            <input type="text" id="chtInputLyDo" placeholder="Nhập lý do..." disabled>
+        </div>
+        <div class="filter-group">
+            <label>GIẢI PHÁP</label>
+            <input type="text" id="chtInputGiaiPhap" placeholder="Nhập giải pháp..." disabled>
+        </div>
+        <div class="submit-container">
+            <button class="ok-btn" id="chtAddBtn" type="button" onclick="addCHTEvalRow()" disabled>OK</button>
+        </div>
+    </div>
+
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th>THÁP / TẦNG</th>
-                    <th>HẠNG MỤC</th>
                     <th>NHÀ THẦU</th>
-                    <th>CÔNG TÁC</th>
-                    <th>NHÂN LỰC BÁO CÁO</th>
-                    <th>1. ĐÁNH GIÁ NHÂN LỰC</th>
-                    <th>2. ĐÁNH GIÁ TIẾN ĐỘ</th>
-                    <th>GHI CHÚ CHT</th>
+                    <th>ĐÁNH GIÁ</th>
+                    <th>LÝ DO</th>
+                    <th>GIẢI PHÁP</th>
+                    <th>THAO TÁC</th>
                 </tr>
             </thead>
             <tbody id="chtEvaluationTableBody">
-                <tr><td colspan="8" style="text-align:center;padding:18px;">Nhập mã CHT để tải công việc hôm nay.</td></tr>
+                <tr><td colspan="5" style="text-align:center;padding:18px;">Nhập mã CHT để bắt đầu đánh giá.</td></tr>
             </tbody>
         </table>
     </div>
@@ -863,7 +888,7 @@
         return formatDate(dateStr) === getTodayString();
     }
 
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3qZswQyyxq7CflcQScS3SwwadpGjFx8xKzmdO9Fyc8WS2B8kKjlWu2cPzWotMKNV40A/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbym6LLDhCDc7I-RlHTZ94Y1rBAHe0YWGcUxjvWbQqCiDWXH-W0nlDv12AwUG1NATFyl/exec";
 
     const database = {
         "Khối Đế": [
@@ -931,6 +956,9 @@
             }
         ]
     };
+
+    // Danh sách nhà thầu dùng cho tab "Đánh Giá Của CHT" (giống các tab lọc theo nhà thầu khác)
+    const CHT_CONTRACTORS = ["BẢN VIỆT", "VIỆT ANH", "NHẬT KHOA", "THÁI LONG", "CAO TRUNG NGHĨA", "HƯNG GIA TUỆ"];
 
     const towerConfigs = {
         "Khối Đế": 8, // Cấu hình danh sách tầng từ 1 đến 8
@@ -1210,14 +1238,14 @@
         document.querySelectorAll('#nlTableBody tr').forEach(sourceRow => {
             const sourceCells = sourceRow.querySelectorAll('td');
             if (sourceCells.length < 7) return;
-            const key = makeReportKey(Array.from(sourceCells).slice(1,5).map(cell => cell.innerText));
+            const key = makeReportKey(Array.from(sourceCells).slice(1,5).map(cell => cell.textContent));
             if (existing.has(key)) return;
 
             const reportRow = document.createElement('tr');
             reportRow.dataset.sourceKey = key;
             reportRow.dataset.userModified = 'false';
             reportRow.innerHTML = `
-                <td>${esc(sourceCells[1].innerText)}</td><td>${esc(sourceCells[2].innerText)}</td><td>${esc(sourceCells[3].innerText)}</td><td>${esc(sourceCells[4].innerText)}</td>
+                <td>${esc(sourceCells[1].textContent)}</td><td>${esc(sourceCells[2].textContent)}</td><td>${esc(sourceCells[3].textContent)}</td><td>${esc(sourceCells[4].textContent)}</td>
                 <td><input type="text" placeholder="Nhập căn..." class="report-apartment"></td>
                 <td><input type="text" placeholder="VD: 100%" class="report-progress"></td>
                 <td><label class="status-toggle"><input type="checkbox" class="report-status" onchange="updateStatusLabel(this)"><span class="toggle-track"></span><span class="status-label">Chưa xong</span></label></td>
@@ -1236,7 +1264,7 @@
             button.classList.toggle('active', button.innerText.trim() === contractorName);
         });
         document.querySelectorAll('#reportTableBody tr').forEach(row => {
-            const contractor = row.cells[2] ? row.cells[2].innerText.trim() : '';
+            const contractor = row.cells[2] ? row.cells[2].textContent.trim() : '';
             row.style.display = contractorName === 'Tất cả' || contractor === contractorName ? '' : 'none';
         });
     }
@@ -1261,10 +1289,10 @@
         const cells = row.querySelectorAll('td');
         return {
             ngay: getTodayString(),
-            thapTang: cells[0]?.innerText.trim() || '',
-            hangMuc: cells[1]?.innerText.trim() || '',
-            nhaThau: cells[2]?.innerText.trim() || '',
-            congTac: cells[3]?.innerText.trim() || '',
+            thapTang: cells[0]?.textContent.trim() || '',
+            hangMuc: cells[1]?.textContent.trim() || '',
+            nhaThau: cells[2]?.textContent.trim() || '',
+            congTac: cells[3]?.textContent.trim() || '',
             can: cells[4]?.querySelector('.report-apartment')?.value.trim() || cells[4]?.innerText.trim() || '',
             tienDo: cells[5]?.querySelector('input')?.value.trim() || '',
             trangThai: cells[6]?.querySelector('.report-status')?.checked ? 'Đã xong' : 'Chưa xong',
@@ -1555,9 +1583,9 @@ function updateDropdowns(mode) {
         rowsNL.forEach(row => {
             const cols = row.querySelectorAll('td');
             if(cols.length >= 7) {
-                const tangText = cols[1].innerText; 
-                const hangMucText = cols[2].innerText;
-                const nhaThauText = cols[3].innerText;
+                const tangText = cols[1].textContent; 
+                const hangMucText = cols[2].textContent;
+                const nhaThauText = cols[3].textContent;
                 const val = parseInt(cols[5].getAttribute('data-val')) || 0;
 
                 let matchedTower = Object.keys(database).find(t => tangText.includes(t)) || "Khác";
@@ -1651,7 +1679,14 @@ function updateDropdowns(mode) {
     }
 
     let chtVerifiedUserId = '';
-    let chtEvaluationRows = [];
+    let chtEvalRows = []; // {nhaThau, danhGia, lyDo, giaiPhap, saved}
+
+    function setCHTFormEnabled(enabled) {
+        ['chtSelectNhaThau', 'chtSelectDanhGia', 'chtInputLyDo', 'chtInputGiaiPhap', 'chtAddBtn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = !enabled;
+        });
+    }
 
     async function verifyAndLoadCHTData() {
         const input = document.getElementById('chtUserId');
@@ -1660,22 +1695,29 @@ function updateDropdowns(mode) {
         const userId = input?.value.trim() || '';
         if (!userId) { alert('Vui lòng nhập mã CHT.'); input?.focus(); return; }
         status.textContent = 'Đang kiểm tra...';
-        body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:18px;">Đang tải công việc hôm nay...</td></tr>';
         try {
             const response = await fetch(`${SCRIPT_URL}?action=verifyCHT&userId=${encodeURIComponent(userId)}&_=${Date.now()}`, {cache:'no-store', redirect:'follow'});
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
             if (!data.verified || data.status !== 'success') throw new Error(data.message || 'ID CHT không hợp lệ');
             chtVerifiedUserId = data.userId;
-            chtEvaluationRows = data.rows || [];
+            chtEvalRows = (data.rows || []).map(row => ({
+                nhaThau: row.nhaThau || '', danhGia: row.danhGia || '', lyDo: row.lyDo || '', giaiPhap: row.giaiPhap || '', saved: true
+            }));
             status.textContent = `✓ ${data.role || 'CHT'}`;
             status.className = 'cht-verified';
+            const nhaThauSelect = document.getElementById('chtSelectNhaThau');
+            if (nhaThauSelect && !nhaThauSelect.options.length) {
+                nhaThauSelect.innerHTML = CHT_CONTRACTORS.map(nt => `<option value="${esc(nt)}">${esc(nt)}</option>`).join('');
+            }
+            setCHTFormEnabled(true);
             renderCHTEvaluationTable();
         } catch (error) {
             console.error(error);
-            chtVerifiedUserId = ''; chtEvaluationRows = [];
+            chtVerifiedUserId = ''; chtEvalRows = [];
             status.textContent = '';
-            body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:18px;">Không tải được dữ liệu CHT.</td></tr>';
+            setCHTFormEnabled(false);
+            body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:18px;">Không tải được dữ liệu CHT.</td></tr>';
             alert(error.message || 'Không thể tải dữ liệu CHT.');
         }
     }
@@ -1683,18 +1725,47 @@ function updateDropdowns(mode) {
     function renderCHTEvaluationTable() {
         const body = document.getElementById('chtEvaluationTableBody');
         if (!body) return;
-        if (!chtEvaluationRows.length) {
-            body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:18px;">Hôm nay chưa có công việc trong tab Nhân lực.</td></tr>';
+        if (!chtEvalRows.length) {
+            body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:18px;">Chưa có đánh giá nào. Chọn nhà thầu và đánh giá ở trên.</td></tr>';
             return;
         }
-        body.innerHTML = chtEvaluationRows.map((row, i) => `
+        body.innerHTML = chtEvalRows.map((row, i) => `
             <tr data-index="${i}">
-                <td>${esc(row.thapTang)}</td><td>${esc(row.hangMuc)}</td><td>${esc(row.nhaThau)}</td><td>${esc(row.congTac)}</td>
-                <td>${esc(row.nhanLucBaoCao)}</td>
-                <td><select class="cht-nl-eval"><option value="">-- Chọn --</option><option ${row.nhanLucDanhGia==='Đủ'?'selected':''}>Đủ</option><option ${row.nhanLucDanhGia==='Thiếu'?'selected':''}>Thiếu</option></select></td>
-                <td><select class="cht-td-eval"><option value="">-- Chọn --</option><option ${row.tienDoDanhGia==='Đạt'?'selected':''}>Đạt</option><option ${row.tienDoDanhGia==='Cần đẩy nhanh'?'selected':''}>Cần đẩy nhanh</option><option ${row.tienDoDanhGia==='Chậm'?'selected':''}>Chậm</option></select></td>
-                <td><input class="cht-note" type="text" value="${escAttr(row.ghiChuCHT || '')}" placeholder="Ghi chú..."></td>
+                <td>${esc(row.nhaThau)}</td>
+                <td>${esc(row.danhGia)}</td>
+                <td>${esc(row.lyDo)}</td>
+                <td>${esc(row.giaiPhap)}</td>
+                <td><button class="delete-btn" onclick="deleteCHTRow(${i})">Xóa</button></td>
             </tr>`).join('');
+    }
+
+    function addCHTEvalRow() {
+        if (!chtVerifiedUserId) { alert('Vui lòng xác nhận ID CHT trước.'); return; }
+        const nhaThau = document.getElementById('chtSelectNhaThau').value;
+        const danhGia = document.getElementById('chtSelectDanhGia').value;
+        const lyDoInput = document.getElementById('chtInputLyDo');
+        const giaiPhapInput = document.getElementById('chtInputGiaiPhap');
+        const lyDo = lyDoInput.value.trim();
+        const giaiPhap = giaiPhapInput.value.trim();
+
+        if (!nhaThau) { alert('Vui lòng chọn nhà thầu.'); return; }
+        if (!danhGia) { alert('Vui lòng chọn đánh giá công việc (Đạt/Không đạt).'); return; }
+        if (danhGia === 'Không đạt' && !lyDo) { alert('Vui lòng nhập lý do khi đánh giá Không đạt.'); lyDoInput.focus(); return; }
+
+        const existingIndex = chtEvalRows.findIndex(row => row.nhaThau === nhaThau);
+        const newRow = { nhaThau, danhGia, lyDo, giaiPhap, saved: false };
+        if (existingIndex >= 0) chtEvalRows[existingIndex] = newRow;
+        else chtEvalRows.push(newRow);
+
+        document.getElementById('chtSelectDanhGia').value = '';
+        lyDoInput.value = '';
+        giaiPhapInput.value = '';
+        renderCHTEvaluationTable();
+    }
+
+    function deleteCHTRow(index) {
+        chtEvalRows.splice(index, 1);
+        renderCHTEvaluationTable();
     }
 
     async function saveCHTEvaluations() {
@@ -1703,26 +1774,11 @@ function updateDropdowns(mode) {
         if (btn?.disabled) return;
         if (btn) { btn.disabled = true; btn.dataset.originalText = btn.innerText; btn.innerText = 'ĐANG LƯU...'; }
         try {
-            const rows = Array.from(document.querySelectorAll('#chtEvaluationTableBody tr[data-index]')).map(tr => {
-                const i = Number(tr.dataset.index);
-                const base = chtEvaluationRows[i];
-                return {
-                    ngay: base.ngay, thapTang: base.thapTang, hangMuc: base.hangMuc, nhaThau: base.nhaThau, congTac: base.congTac,
-                    nhanLucBaoCao: base.nhanLucBaoCao, tienDo: '', trangThai: '',
-                    nhanLucDanhGia: tr.querySelector('.cht-nl-eval')?.value || '',
-                    tienDoDanhGia: tr.querySelector('.cht-td-eval')?.value || '',
-                    ghiChuCHT: tr.querySelector('.cht-note')?.value.trim() || ''
-                };
-            });
-            if (!rows.length) throw new Error('Không có công việc để đánh giá.');
+            const rows = chtEvalRows.filter(row => !row.saved)
+                .map(row => ({ nhaThau: row.nhaThau, danhGia: row.danhGia, lyDo: row.lyDo, giaiPhap: row.giaiPhap }));
+            if (!rows.length) throw new Error('Không có đánh giá mới nào để gửi!');
             await postJSON({type:'danhgia_cht', userId:chtVerifiedUserId, rows});
-            rows.forEach((saved, index) => {
-                if (chtEvaluationRows[index]) {
-                    chtEvaluationRows[index].nhanLucDanhGia = saved.nhanLucDanhGia;
-                    chtEvaluationRows[index].tienDoDanhGia = saved.tienDoDanhGia;
-                    chtEvaluationRows[index].ghiChuCHT = saved.ghiChuCHT;
-                }
-            });
+            chtEvalRows.forEach(row => row.saved = true);
             alert('Đã lưu đánh giá CHT thành công.');
             renderCHTEvaluationTable();
         } catch (error) {
