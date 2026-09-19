@@ -771,6 +771,11 @@
     <div id="dashboardContainer" class="dashboard-container">
         <!-- Dữ liệu chi tiết theo tháp, nhà thầu, hạng mục -->
     </div>
+
+    <div class="sub-title" style="margin-top: 25px;">Danh sách công việc theo từng nhà thầu (hôm nay)</div>
+    <div id="contractorWorkContainer" class="dashboard-container" style="margin-top: 10px;">
+        <!-- Công việc gộp theo Nhà thầu + Hạng mục + Công tác, các tầng khác nhau gộp chung 1 dòng thay vì lặp -->
+    </div>
 </div>
 
 <!-- ================= TAB 4: TIẾN ĐỘ GIAO NHÀ ================= -->
@@ -1638,6 +1643,80 @@ function updateDropdowns(mode) {
         if(container.children.length === 0) {
             container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 30px;">Chưa có dữ liệu thống kê nào được ghi nhận trong ngày hôm nay.</div>`;
         }
+
+        renderContractorWorkList(rowsNL);
+    }
+
+    // Sắp xếp nhãn "Tầng X - Tháp Y" theo số tầng tăng dần thay vì theo chuỗi chữ cái
+    function compareFloorLabels(a, b) {
+        const na = parseInt((a.match(/\d+/) || [0])[0], 10) || 0;
+        const nb = parseInt((b.match(/\d+/) || [0])[0], 10) || 0;
+        if (na !== nb) return na - nb;
+        return a.localeCompare(b);
+    }
+
+    // Gộp các dòng cùng Nhà thầu + Hạng mục + Công tác (chỉ khác Tầng) lại thành 1 dòng duy nhất,
+    // để danh sách công việc theo nhà thầu không bị lặp lại nhiều lần theo từng tầng.
+    function renderContractorWorkList(rowsNL) {
+        const container = document.getElementById('contractorWorkContainer');
+        if (!container) return;
+        container.innerHTML = "";
+
+        const contractorMap = {};
+
+        rowsNL.forEach(row => {
+            const cols = row.querySelectorAll('td');
+            if (cols.length < 7) return;
+            const tangThap = cols[1].textContent.trim();
+            const hangMucText = cols[2].textContent.trim();
+            const nhaThauText = cols[3].textContent.trim();
+            const congTacText = cols[4].textContent.trim();
+            const val = parseInt(cols[5].getAttribute('data-val')) || 0;
+
+            if (!contractorMap[nhaThauText]) contractorMap[nhaThauText] = {};
+            const key = hangMucText + '\u001f' + congTacText;
+            if (!contractorMap[nhaThauText][key]) {
+                contractorMap[nhaThauText][key] = { hangMuc: hangMucText, congTac: congTacText, floors: new Set(), workers: 0 };
+            }
+            const item = contractorMap[nhaThauText][key];
+            if (tangThap) item.floors.add(tangThap);
+            item.workers += val;
+        });
+
+        const contractors = Object.keys(contractorMap).sort();
+
+        if (!contractors.length) {
+            container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 30px;">Chưa có công việc nào được ghi nhận trong ngày hôm nay.</div>`;
+            return;
+        }
+
+        contractors.forEach(nhaThauText => {
+            const towerDiv = document.createElement('div');
+            towerDiv.className = 'tower-section';
+
+            const towerTitle = document.createElement('div');
+            towerTitle.className = 'tower-title';
+            towerTitle.innerText = nhaThauText;
+            towerDiv.appendChild(towerTitle);
+
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'dash-cards-grid';
+
+            Object.values(contractorMap[nhaThauText]).forEach(item => {
+                const floorsList = Array.from(item.floors).sort(compareFloorLabels).join(', ');
+                const card = document.createElement('div');
+                card.className = 'dash-sub-card';
+                card.innerHTML = `
+                    <h4>${esc(item.hangMuc)} - ${esc(item.congTac)}</h4>
+                    <p>Vị trí: <span style="color: white; font-weight: 600;">${esc(floorsList || 'Chưa rõ')}</span></p>
+                    <p>Tổng công nhân: <span class="highlight">${item.workers} người</span></p>
+                `;
+                gridDiv.appendChild(card);
+            });
+
+            towerDiv.appendChild(gridDiv);
+            container.appendChild(towerDiv);
+        });
     }
 
     async function sendData(mode) {
